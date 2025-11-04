@@ -1,0 +1,719 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+
+// --- Global Constants (External Links) ---
+const NCNU_URL = 'https://www.ncnu.edu.tw';
+const BAITIA_DEPT_URL = 'https://baitia.ncnu.edu.tw/p/404-1084-24750.php?Lang=en';
+const LOGO_URL = 'https://service.ncnu.edu.tw/ncnuweb/units/share/%E5%85%A8%E6%A0%A1%E5%85%B1%E7%94%A8/web_material/material-logo.htm';
+const APPLY_URL = 'https://exam.ncnu.edu.tw/114FApply.html';
+const CURRICULUM_MAIN_URL = 'https://baitia.ncnu.edu.tw/p/404-1084-24760.php?Lang=en';
+const FB_URL = 'https://www.facebook.com/share/1BoKBKxXHZ/?';
+const YT_URL = 'https://youtube.com/channel/UCfW7jAUBy-yxZCxlsxe5ERg?si=Jr8gpLUAM5Di6elS';
+const IG_URL = 'https://www.instagram.com/ncnu_baitia?igsh=d2F6cWpudmU5M3Jp&utm_source=qr';
+
+const DEPARTMENT_LINKS = [
+  { key: 'dept_intl_studies', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1146.php?Lang=en' },
+  { key: 'dept_banking_finance', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1148.php?Lang=en' },
+  { key: 'dept_economics', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1145.php?Lang=en' },
+  { key: 'dept_info_management', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1147.php?Lang=en' },
+  { key: 'dept_tourism', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1149.php?Lang=en' },
+  { key: 'dept_computer_science', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1151.php?Lang=en' },
+];
+
+// --- i18n Translation Data (CRITICAL) ---
+const i18n = {
+  'en-US': {
+    title: 'Next Horizon: Management & IT Innovation',
+    meta_description: 'Official trial website for the Next Horizon Master\'s program at NCNU BAITIA, focusing on interdisciplinary education across Management and IT.',
+    lang_name: 'English',
+    lang_toggle: '繁中',
+    
+    // Header
+    header_proj_title: 'Next Horizon: Management & IT Innovation',
+    header_parent_org: 'National Chi Nan University (NCNU)',
+    header_dept_link: 'Department of Business Admission and Innovation Technology Innovation and Application (BAITIA)',
+    notice_title: 'Note:',
+    notice_content: 'This is a Trial website for a group project of the Digital Marketing course (elective in BAITIA).',
+    notice_dismiss: 'Dismiss',
+    nav_home: 'Home',
+    nav_curriculum: 'Curriculum Planning',
+    nav_admission: 'Admission',
+
+    // Curriculum Department Names (for Dropdown)
+    dept_intl_studies: 'Department of International Studies',
+    dept_banking_finance: 'Department of Banking and Finance',
+    dept_economics: 'Department of Economics',
+    dept_info_management: 'Department of Information Management',
+    dept_tourism: 'Department of Tourism',
+    dept_computer_science: 'Department of Computer Science',
+    
+    // Home Page
+    hero_headline: 'Five Disciplines. One Integrated Vision.',
+    hero_subhead: 'Master the future of business at the intersection of Management and Information Technology.',
+    cta_explore: 'Explore Curriculum',
+    cta_apply: 'Apply Now',
+    
+    section_about_title: 'The BAITIA Advantage',
+    section_about_p1: 'Our Master’s program delivers comprehensive management education built upon the depth of six collaborating academic departments. This cross-disciplinary approach—spanning **International Studies, Finance, Economics, Information Management, Tourism, and Computer Science**—ensures real-world relevance and prepares leaders for the digital age.',
+    section_about_p2: 'The program emphasizes innovative thinking, data-driven decision-making, and ethical leadership in a global context. We provide an integrated learning journey, not a fragmented one.',
+
+    section_features_title: 'Program Focus',
+    feature_tech_title: 'IT Innovation',
+    feature_tech_desc: 'Focus on emerging technologies, big data analytics, and digital transformation strategy.',
+    feature_mgt_title: 'Strategic Management',
+    feature_mgt_desc: 'Develop deep expertise in strategic planning, organizational behavior, and effective leadership.',
+    feature_global_title: 'Global Perspective',
+    feature_global_desc: 'Gain insights into international business practices, cross-cultural management, and market dynamics.',
+
+    section_testimonials_title: 'Student Success Stories',
+    testimonial_quote_1: '"The interdisciplinary focus gave me the confidence to bridge the gap between technical teams and management. Truly a \'Next Horizon\' education."',
+    testimonial_author_1: 'Alex Chen, Class of 2023',
+    testimonial_quote_2: '"The curriculum is highly practical and the faculty, drawn from six departments, offers unparalleled depth. It transformed my career outlook."',
+    testimonial_author_2: 'Dr. Jane Lee, Startup Founder',
+
+    // Curriculum Page
+    curriculum_header: 'Integrated Curriculum Planning',
+    curriculum_intro: 'Our program is designed to deliver a cohesive, yet diverse, learning experience. Review the full planning document or explore contributions from our partner departments below.',
+    curriculum_download_pdf: 'Download Program PDF',
+    curriculum_map_title: 'Curriculum Map Placeholder',
+    curriculum_map_desc: 'A visual timeline or semester planner is available here.',
+    
+    // Admission Page
+    admission_header: 'Admission & Application',
+    admission_cta_headline: 'Ready to Lead the Next Horizon?',
+    admission_cta_subhead: 'Your journey starts here. Review application policies and connect with our team.',
+    admission_contact_title: 'Contact Us',
+    contact_email: 'Email:',
+    contact_phone: 'Phone:',
+    contact_hours: 'Office Hours:',
+    contact_email_val: 'baitia@ncnu.edu.tw',
+    contact_phone_val: '(+886) 49-2910960 ext 4676',
+    contact_hours_val: 'Mon-Fri, 9:00 AM - 5:00 PM (Taiwan Time)',
+    admission_policies: 'View Admission Policies & Tuition Notes',
+    
+    // Footer
+    footer_address_title: 'NCNU Address',
+    footer_address_val: 'No. 1, University Road, Puli Township, Nantou County 545, Taiwan (R.O.C.)',
+    footer_contact_title: 'BAITIA Contact',
+    footer_copyright: '© 2024 NCNU BAITIA. All Rights Reserved.',
+  },
+  'zh-TW': {
+    title: '未來領航：管理與資訊科技創新',
+    meta_description: '國立暨南國際大學企管碩專班與創新科技應用學系(BAITIA)「未來領航」碩士學程試驗網站，專注於跨管理與資訊科技的學科教育。',
+    lang_name: '繁體中文',
+    lang_toggle: 'EN',
+
+    // Header
+    header_proj_title: '未來領航：管理與資訊科技創新',
+    header_parent_org: '國立暨南國際大學 (NCNU)',
+    header_dept_link: '企業管理碩士在職專班與創新科技應用學系 (BAITIA)',
+    notice_title: '備註:',
+    notice_content: '此網站是數位行銷課程（企管碩專班與創新科技應用學系選修）小組專題的試驗網站。',
+    notice_dismiss: '關閉',
+    nav_home: '首頁',
+    nav_curriculum: '課程規劃',
+    nav_admission: '招生資訊',
+
+    // Curriculum Department Names (for Dropdown)
+    dept_intl_studies: '國際企業學系',
+    dept_banking_finance: '銀行與金融學系',
+    dept_economics: '經濟學系',
+    dept_info_management: '資訊管理學系',
+    dept_tourism: '觀光休閒學系',
+    dept_computer_science: '資訊工程學系',
+
+    // Home Page
+    hero_headline: '五大學科。一個整合視野。',
+    hero_subhead: '在管理與資訊科技的交會點，掌握商業的未來。',
+    cta_explore: '探索課程',
+    cta_apply: '立即申請',
+    
+    section_about_title: 'BAITIA的優勢',
+    section_about_p1: '我們的碩士課程提供全面的管理教育，其基礎源自六個協作的學術系所。這種跨學科的方法—涵蓋**國際企業、銀行與金融、經濟學、資訊管理、觀光休閒、以及資訊工程**—確保了課程的實用性，並為數位時代培養領導者。',
+    section_about_p2: '本學程強調創新思維、數據驅動決策，以及全球背景下的道德領導力。我們提供的是一個整合的學習旅程，而非零散的知識。',
+
+    section_features_title: '學程重點',
+    feature_tech_title: '資訊科技創新',
+    feature_tech_desc: '專注於新興技術、大數據分析和數位轉型策略。',
+    feature_mgt_title: '策略管理',
+    feature_mgt_desc: '培養策略規劃、組織行為和有效領導力方面的深厚專業知識。',
+    feature_global_title: '全球視野',
+    feature_global_desc: '深入了解國際商業實務、跨文化管理和市場動態。',
+
+    section_testimonials_title: '學生成功案例',
+    testimonial_quote_1: '"跨學科的重點讓我有信心去彌合技術團隊與管理層之間的鴻溝。這真是一次「未來領航」的教育。"',
+    testimonial_author_1: '陳立明 (Alex Chen), 2023屆',
+    testimonial_quote_2: '"課程非常實用，來自六個系所的師資提供了無與倫比的深度。它徹底改變了我的職業前景。"',
+    testimonial_author_2: '李珍妮 博士 (Dr. Jane Lee), 創業家',
+
+    // Curriculum Page
+    curriculum_header: '整合課程規劃',
+    curriculum_intro: '我們的學程旨在提供一個連貫而多樣化的學習體驗。請查閱完整的規劃文件，或探索下方各合作系所的貢獻。',
+    curriculum_download_pdf: '下載學程PDF',
+    curriculum_map_title: '課程地圖佔位符',
+    curriculum_map_desc: '此處提供視覺化的時間表或學期規劃器。',
+
+    // Admission Page
+    admission_header: '招生與申請',
+    admission_cta_headline: '準備好引領未來領航了嗎？',
+    admission_cta_subhead: '您的旅程從這裡開始。請查閱申請政策並聯繫我們的團隊。',
+    admission_contact_title: '聯繫我們',
+    contact_email: '電子郵件:',
+    contact_phone: '電話:',
+    contact_hours: '辦公時間:',
+    contact_email_val: 'baitia@ncnu.edu.tw',
+    contact_phone_val: '(+886) 49-2910960 分機 4676',
+    contact_hours_val: '週一至週五, 9:00 AM - 5:00 PM (台灣時間)',
+    admission_policies: '查看入學政策與學費須知',
+
+    // Footer
+    footer_address_title: '暨南大學地址',
+    footer_address_val: '545 南投縣埔里鎮大學路一號 (R.O.C.)',
+    footer_contact_title: 'BAITIA 聯繫方式',
+    footer_copyright: '© 2024 NCNU BAITIA. 版權所有。',
+  }
+};
+
+// --- Utility Components (Inline SVGs for Icons) ---
+const IconMenu = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>);
+const IconX = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
+const IconChevronDown = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>);
+const IconBookOpen = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>);
+const IconUsers = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>);
+const IconBriefcase = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>);
+const IconBarChart = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>);
+const IconLightbulb = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .9-2 1.5-3.2A12 12 0 0 0 16 2C11 2 9 7 9 7a8 8 0 0 0-3 6.7c-.5 1.7-.5 4.6 1 6.3l.8.8c.8.8 1.6 1 2.8 1h2.2c1.2 0 2-.2 2.8-1l.8-.8c1.5-1.7 1.5-4.6 1-6.3z"></path></svg>);
+const IconGlobe = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>);
+const IconDownload = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>);
+const IconMail = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>);
+const IconPhone = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-3.67-3.67A19.79 19.79 0 0 1 3 4.18C3 3 3.82 2.18 4.9 2H7.08a2 2 0 0 1 2 1.73l.7 4.88a2 2 0 0 1-.5 1.77L5.8 15.93a12 12 0 0 0 6.27 6.27l3.65-3.65a2 2 0 0 1 1.77-.5l4.88.7A2 2 0 0 1 22 16.92z"></path></svg>);
+const IconClock = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>);
+
+// --- Main App Component ---
+const App = () => {
+  const [locale, setLocale] = useState('en-US');
+  const [activePage, setActivePage] = useState('Home');
+  const [isNoticeVisible, setIsNoticeVisible] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCurriculumDropdownOpen, setIsCurriculumDropdownOpen] = useState(false);
+
+  // Memoize the current translations
+  const t = useMemo(() => i18n[locale] || i18n['en-US'], [locale]);
+  const langToggleText = useMemo(() => locale === 'en-US' ? 'zh-TW' : 'en-US', [locale]);
+
+  // Handle language switch
+  const handleLanguageSwitch = useCallback(() => {
+    const newLocale = locale === 'en-US' ? 'zh-TW' : 'en-US';
+    setLocale(newLocale);
+    // Update the BAITIA link dynamically based on the current page for consistency
+    const baitiaLink = newLocale === 'en-US'
+      ? BAITIA_DEPT_URL.replace('Lang=zh-TW', 'Lang=en')
+      : BAITIA_DEPT_URL.replace('Lang=en', 'Lang=zh-TW');
+    document.getElementById('baitia-dept-link').href = baitiaLink;
+  }, [locale]);
+
+  // Update document metadata for SEO based on language
+  useEffect(() => {
+    document.title = t.title;
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', t.meta_description);
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'description';
+      meta.content = t.meta_description;
+      document.head.appendChild(meta);
+    }
+    // Set HTML lang attribute for accessibility
+    document.documentElement.lang = locale === 'en-US' ? 'en' : 'zh';
+  }, [t, locale]);
+
+  // --- Components ---
+
+  const NavItem = ({ page, label, url = null, isDropdown = false }) => {
+    const baseClasses = 'block md:inline-flex items-center text-sm font-medium transition duration-150 ease-in-out px-3 py-2 rounded-lg';
+    const activeClasses = 'text-teal-400 bg-slate-800 hover:text-teal-300';
+    const inactiveClasses = 'text-slate-200 hover:text-teal-400 hover:bg-slate-700';
+
+    if (url) {
+      return (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${baseClasses} ${inactiveClasses} md:ml-4`}
+          aria-label={label}
+        >
+          {label}
+        </a>
+      );
+    }
+
+    if (isDropdown) {
+      return (
+        <div className="relative">
+          <button
+            onClick={() => setIsCurriculumDropdownOpen(!isCurriculumDropdownOpen)}
+            className={`${baseClasses} ${activePage === page ? activeClasses : inactiveClasses} w-full md:w-auto md:ml-4`}
+            aria-expanded={isCurriculumDropdownOpen}
+            aria-controls="curriculum-dropdown-menu"
+          >
+            {label}
+            <IconChevronDown className="ml-1 w-4 h-4" />
+          </button>
+          {isCurriculumDropdownOpen && (
+            <div
+              id="curriculum-dropdown-menu"
+              className="absolute z-30 md:top-full md:left-1/2 md:-translate-x-1/2 mt-2 w-full md:w-64 rounded-xl shadow-2xl bg-slate-800 ring-1 ring-teal-500/50 p-2 space-y-1"
+              role="menu"
+              aria-orientation="vertical"
+            >
+              <a
+                href={CURRICULUM_MAIN_URL.replace('Lang=en', `Lang=${locale === 'en-US' ? 'en' : 'zh-TW'}`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block px-3 py-2 text-sm text-teal-400 hover:bg-slate-700 rounded-lg transition"
+              >
+                {t.nav_curriculum} ({locale === 'en-US' ? 'Main Page' : '主頁'})
+              </a>
+              <div className="border-t border-slate-700 pt-1">
+                {DEPARTMENT_LINKS.map((dept) => (
+                  <a
+                    key={dept.key}
+                    href={dept.url.replace('Lang=en', `Lang=${locale === 'en-US' ? 'en' : 'zh-TW'}`)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition"
+                    role="menuitem"
+                  >
+                    {t[dept.key]}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <button
+        onClick={() => { setActivePage(page); setIsMenuOpen(false); setIsCurriculumDropdownOpen(false); }}
+        className={`${baseClasses} ${activePage === page ? activeClasses : inactiveClasses} w-full md:w-auto md:ml-4`}
+        aria-current={activePage === page ? 'page' : undefined}
+      >
+        {label}
+      </button>
+    );
+  };
+
+  const Header = () => (
+    <header className="bg-slate-900 sticky top-0 z-50 shadow-xl border-b border-teal-500/20">
+      {/* Trial Notice */}
+      {isNoticeVisible && (
+        <div className="bg-teal-700/80 text-white p-2 text-center text-sm font-semibold relative" role="alert">
+          <p className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <span className="font-extrabold mr-1">{t.notice_title}</span>
+            {t.notice_content}
+          </p>
+          <button
+            onClick={() => setIsNoticeVisible(false)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-teal-600 transition"
+            aria-label={t.notice_dismiss}
+          >
+            <IconX className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Main Header */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-20">
+          {/* Logo and Titles */}
+          <div className="flex-shrink-0 flex items-center space-x-3">
+            <a href={LOGO_URL} target="_blank" rel="noopener noreferrer" aria-label="NCNU Official Logo Link">
+              {/* Placeholder for NCNU Logo */}
+              <div className="h-10 w-10 bg-teal-500 rounded-lg flex items-center justify-center font-bold text-slate-900 text-lg">N</div>
+            </a>
+            <div className="flex flex-col">
+              <span className="text-xl font-extrabold text-white tracking-tight">{t.header_proj_title}</span>
+              <a href={NCNU_URL} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-teal-400 transition">
+                {t.header_parent_org}
+              </a>
+              <a id="baitia-dept-link" href={BAITIA_DEPT_URL} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-teal-400 transition mt-0.5">
+                {t.header_dept_link}
+              </a>
+            </div>
+          </div>
+
+          {/* Desktop Nav and Controls */}
+          <div className="hidden md:flex items-center space-x-6">
+            <nav className="flex space-x-1" aria-label="Main Navigation">
+              <NavItem page="Home" label={t.nav_home} url={BAITIA_DEPT_URL} />
+              <NavItem page="Curriculum" label={t.nav_curriculum} isDropdown={true} />
+              <NavItem page="Admission" label={t.nav_admission} />
+            </nav>
+            <LanguageToggle />
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center">
+            <LanguageToggle className="mr-4" />
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
+              aria-label={isMenuOpen ? 'Close Menu' : 'Open Menu'}
+            >
+              {isMenuOpen ? <IconX className="w-6 h-6" /> : <IconMenu className="w-6 h-6" />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Menu Panel */}
+      {isMenuOpen && (
+        <div className="md:hidden absolute bg-slate-900 w-full shadow-lg p-4 transition-all duration-300 ease-in-out" id="mobile-menu">
+          <nav className="flex flex-col space-y-2" aria-label="Mobile Navigation">
+            <NavItem page="Home" label={t.nav_home} url={BAITIA_DEPT_URL} />
+            <NavItem page="Curriculum" label={t.nav_curriculum} isDropdown={true} />
+            <NavItem page="Admission" label={t.nav_admission} />
+          </nav>
+        </div>
+      )}
+    </header>
+  );
+
+  const Footer = () => (
+    <footer className="bg-slate-900 border-t border-teal-500/20 mt-12 py-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-slate-400">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          {/* Section 1: Project Info */}
+          <div>
+            <h4 className="text-white font-bold mb-3">{t.header_proj_title}</h4>
+            <p className="text-sm">{t.header_parent_org}</p>
+            <p className="text-sm mt-1">{t.header_dept_link}</p>
+          </div>
+
+          {/* Section 2: Contact Info */}
+          <div>
+            <h4 className="text-white font-bold mb-3">{t.footer_contact_title}</h4>
+            <p className="text-sm">
+              <span className="font-semibold">{t.contact_email}</span> {t.contact_email_val}
+            </p>
+            <p className="text-sm mt-1">
+              <span className="font-semibold">{t.contact_phone}</span> {t.contact_phone_val}
+            </p>
+          </div>
+
+          {/* Section 3: Address */}
+          <div>
+            <h4 className="text-white font-bold mb-3">{t.footer_address_title}</h4>
+            <address className="text-sm not-italic">{t.footer_address_val}</address>
+          </div>
+
+          {/* Section 4: Social & Controls */}
+          <div>
+            <h4 className="text-white font-bold mb-3">Connect</h4>
+            <div className="flex space-x-4 mb-4">
+              <a href={FB_URL} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <svg className="w-6 h-6 fill-current text-slate-400 hover:text-teal-400 transition" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 11h2v-3h-2v2h-2v-2h-2v3h2v2h-2v-3h-2v3h2v2h2v-2h2v2h2v-3h-2V11zm-2-9a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 22a9 9 0 1 1 0-18 9 9 0 0 1 0 18z"/><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
+              </a>
+              <a href={IG_URL} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <svg className="w-6 h-6 fill-current text-slate-400 hover:text-teal-400 transition" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 11.37 16 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              </a>
+              <a href={YT_URL} target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                <svg className="w-6 h-6 fill-current text-slate-400 hover:text-teal-400 transition" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.54 6.49c-.2-.72-.98-1.4-1.74-1.55C16.5 4 12 4 12 4s-4.5 0-7.8.94c-.76.16-1.54.83-1.74 1.55-.47 1.74-.47 4.5 0 6.24.2 1.3.98 1.98 1.74 2.14C6.5 19 12 19 12 19s4.5 0 7.8-.94c.76-.16 1.54-.83 1.74-1.55.47-1.74.47-4.5 0-6.24zM9.83 14.5v-5L15 12l-5.17 2.5z"/></svg>
+              </a>
+            </div>
+            <LanguageToggle />
+          </div>
+        </div>
+        <div className="mt-8 pt-6 border-t border-slate-700 text-center text-sm">
+          {t.footer_copyright}
+        </div>
+      </div>
+    </footer>
+  );
+
+  const LanguageToggle = ({ className = '' }) => (
+    <button
+      onClick={handleLanguageSwitch}
+      className={`flex items-center space-x-1 p-2 rounded-full bg-slate-800 text-white hover:bg-teal-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400 ${className}`}
+      aria-label={`Switch language to ${t.lang_toggle === 'EN' ? 'English' : 'Traditional Chinese'}`}
+    >
+      <IconGlobe className="w-4 h-4" />
+      <span className="text-sm font-semibold">{t.lang_toggle}</span>
+    </button>
+  );
+
+  // --- Page Content Components ---
+
+  const HomePage = () => (
+    <main className="min-h-screen bg-slate-900 text-white">
+      {/* 1. Hero Section */}
+      <section className="relative h-[60vh] md:h-[75vh] flex items-center justify-center overflow-hidden bg-slate-800">
+        {/* Background Visual (Placeholder Gradient/Animation) */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-900 to-slate-800 opacity-90" aria-hidden="true"></div>
+        <div className="absolute inset-0 z-0 opacity-10" style={{ backgroundImage: "url('https://placehold.co/1920x1080/1e293b/2dd4bf?text=Collaboration+Innovation')" }} role="img" aria-label="Abstract background image conveying collaboration and innovation"></div>
+        
+        <div className="relative z-10 text-center max-w-4xl p-6 rounded-xl bg-slate-900/70 backdrop-blur-sm shadow-2xl">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tighter mb-4 leading-tight text-teal-400">
+            {t.hero_headline}
+          </h1>
+          <p className="text-lg sm:text-xl text-slate-200 mb-8 max-w-2xl mx-auto">
+            {t.hero_subhead}
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <a
+              href={APPLY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-3 bg-teal-500 text-slate-900 font-bold text-lg rounded-full shadow-lg hover:bg-teal-400 transition transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-teal-500/50"
+            >
+              {t.cta_apply}
+            </a>
+            <button
+              onClick={() => setActivePage('Curriculum')}
+              className="px-8 py-3 bg-slate-700 text-white font-bold text-lg rounded-full border-2 border-slate-600 hover:bg-slate-600 transition transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-400/50"
+            >
+              {t.cta_explore}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. About Section */}
+      <section className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <h2 className="text-4xl font-extrabold text-teal-400 mb-8 border-b-4 border-teal-500/50 pb-2 inline-block">
+          {t.section_about_title}
+        </h2>
+        <div className="grid md:grid-cols-2 gap-10 text-lg text-slate-300">
+          <p className="leading-relaxed">{t.section_about_p1}</p>
+          <p className="leading-relaxed">{t.section_about_p2}</p>
+        </div>
+      </section>
+
+      {/* 3. Featured Panels / Program Focus */}
+      <section className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 bg-slate-800 rounded-xl shadow-2xl">
+        <h2 className="text-3xl font-bold text-white mb-10 text-center">
+          {t.section_features_title}
+        </h2>
+        <div className="grid md:grid-cols-3 gap-8">
+          {[
+            { icon: IconLightbulb, title: t.feature_tech_title, desc: t.feature_tech_desc },
+            { icon: IconBarChart, title: t.feature_mgt_title, desc: t.feature_mgt_desc },
+            { icon: IconGlobe, title: t.feature_global_title, desc: t.feature_global_desc },
+          ].map((feature, index) => (
+            <div
+              key={index}
+              className="p-6 bg-slate-900 rounded-xl shadow-lg border border-slate-700 hover:border-teal-400 transition duration-300 transform hover:scale-[1.02] group"
+              tabIndex="0"
+            >
+              <feature.icon className="w-10 h-10 text-teal-400 mb-4 transition-colors group-hover:text-teal-300" />
+              <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
+              <p className="text-slate-400 text-sm">{feature.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 4. Student Experience / Testimonials */}
+      <section className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <h2 className="text-4xl font-extrabold text-teal-400 mb-10 text-center">
+          {t.section_testimonials_title}
+        </h2>
+        <div className="grid md:grid-cols-2 gap-8">
+          {[
+            { quote: t.testimonial_quote_1, author: t.testimonial_author_1 },
+            { quote: t.testimonial_quote_2, author: t.testimonial_author_2 },
+          ].map((testimonial, index) => (
+            <figure key={index} className="bg-slate-800 p-8 rounded-xl shadow-xl border-l-4 border-teal-500">
+              <blockquote className="text-lg italic text-slate-200 mb-4">
+                "{testimonial.quote}"
+              </blockquote>
+              <figcaption className="text-sm font-semibold text-teal-300">
+                — {testimonial.author}
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+
+  const CurriculumPage = () => (
+    <main className="min-h-screen bg-slate-900 text-white max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <h1 className="text-5xl font-extrabold text-teal-400 mb-4">{t.curriculum_header}</h1>
+      <p className="text-xl text-slate-300 mb-8">{t.curriculum_intro}</p>
+
+      {/* Curriculum CTA and Download */}
+      <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-slate-800 rounded-xl shadow-lg mb-10">
+        <a
+          href={CURRICULUM_MAIN_URL.replace('Lang=en', `Lang=${locale === 'en-US' ? 'en' : 'zh-TW'}`)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center space-x-2 px-6 py-3 bg-teal-500 text-slate-900 font-bold rounded-full hover:bg-teal-400 transition"
+        >
+          <IconBookOpen className="w-5 h-5" />
+          <span>{t.nav_curriculum} ({locale === 'en-US' ? 'Main Document' : '主要文件'})</span>
+        </a>
+        <a
+          href="#" // Placeholder for actual PDF
+          className="flex items-center space-x-2 px-6 py-3 mt-4 sm:mt-0 bg-slate-700 text-white font-bold rounded-full hover:bg-slate-600 transition"
+          aria-label={t.curriculum_download_pdf}
+        >
+          <IconDownload className="w-5 h-5" />
+          <span>{t.curriculum_download_pdf}</span>
+        </a>
+      </div>
+      
+      {/* Department Links (Visual Card Format) */}
+      <h2 className="text-3xl font-bold text-white mb-6 mt-12">
+        {t.nav_curriculum} — {locale === 'en-US' ? 'Contributing Departments' : '協作系所'}
+      </h2>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {DEPARTMENT_LINKS.map((dept) => (
+          <a
+            key={dept.key}
+            href={dept.url.replace('Lang=en', `Lang=${locale === 'en-US' ? 'en' : 'zh-TW'}`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700 hover:border-teal-500 transition duration-300 transform hover:-translate-y-1 block group"
+          >
+            <div className="flex items-center space-x-3 mb-2">
+              <IconBriefcase className="w-6 h-6 text-teal-400 group-hover:text-teal-300" />
+              <h3 className="text-xl font-semibold text-white group-hover:underline">{t[dept.key]}</h3>
+            </div>
+            <p className="text-sm text-slate-400">
+              {locale === 'en-US' ? 'View departmental course contribution.' : '查看系所課程貢獻。'}
+            </p>
+          </a>
+        ))}
+      </div>
+
+      {/* Curriculum Map Placeholder */}
+      <div className="mt-16 p-8 bg-slate-800 rounded-xl border border-dashed border-slate-600 text-center">
+        <h3 className="text-2xl font-bold text-white mb-2">{t.curriculum_map_title}</h3>
+        <p className="text-slate-400">{t.curriculum_map_desc}</p>
+        <div className="mt-6 w-full h-40 bg-slate-700 rounded-lg flex items-center justify-center text-slate-500 font-mono">
+          [Interactive Timeline/Planner Component TBD]
+        </div>
+      </div>
+    </main>
+  );
+
+  const AdmissionPage = () => (
+    <main className="min-h-screen bg-slate-900 text-white max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      <h1 className="text-5xl font-extrabold text-teal-400 mb-8">{t.admission_header}</h1>
+      
+      {/* CTA Section */}
+      <section className="bg-slate-800 p-8 rounded-xl shadow-2xl mb-12 border-l-8 border-teal-500">
+        <h2 className="text-3xl font-bold text-white mb-3">{t.admission_cta_headline}</h2>
+        <p className="text-lg text-slate-300 mb-6">{t.admission_cta_subhead}</p>
+        <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
+            <a
+              href={APPLY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-8 py-3 bg-teal-500 text-slate-900 font-bold text-lg rounded-full shadow-lg hover:bg-teal-400 transition transform hover:scale-105"
+            >
+              {t.cta_apply}
+            </a>
+            <a
+              href="#" // Placeholder for Policies
+              className="px-8 py-3 text-lg font-bold text-teal-400 hover:text-teal-300 transition"
+              aria-label={t.admission_policies}
+            >
+              {t.admission_policies}
+            </a>
+        </div>
+      </section>
+
+      {/* Contact Form & Info */}
+      <section className="grid md:grid-cols-2 gap-10">
+        {/* Contact Information */}
+        <div className="bg-slate-800 p-8 rounded-xl shadow-lg">
+          <h3 className="text-3xl font-bold text-white mb-6">{t.admission_contact_title}</h3>
+          <div className="space-y-4">
+            <ContactDetail icon={IconMail} label={t.contact_email} value={t.contact_email_val} link={`mailto:${t.contact_email_val}`} />
+            <ContactDetail icon={IconPhone} label={t.contact_phone} value={t.contact_phone_val} link={`tel:${t.contact_phone_val.replace(/[^0-9+]/g, '')}`} />
+            <ContactDetail icon={IconClock} label={t.contact_hours} value={t.contact_hours_val} />
+          </div>
+        </div>
+
+        {/* Contact Form Placeholder */}
+        <div className="bg-slate-800 p-8 rounded-xl shadow-lg">
+          <h3 className="text-3xl font-bold text-white mb-6">{locale === 'en-US' ? 'Quick Inquiry' : '快速諮詢'}</h3>
+          <form className="space-y-4">
+            <input type="text" placeholder={locale === 'en-US' ? 'Your Name' : '您的姓名'} className="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 focus:ring-teal-500 focus:border-teal-500 text-white" aria-label={locale === 'en-US' ? 'Your Name' : '您的姓名'} />
+            <input type="email" placeholder={locale === 'en-US' ? 'Your Email' : '您的電子郵件'} className="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 focus:ring-teal-500 focus:border-teal-500 text-white" aria-label={locale === 'en-US' ? 'Your Email' : '您的電子郵件'} />
+            <textarea placeholder={locale === 'en-US' ? 'Your Message' : '您的訊息'} rows="4" className="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 focus:ring-teal-500 focus:border-teal-500 text-white" aria-label={locale === 'en-US' ? 'Your Message' : '您的訊息'}></textarea>
+            <button type="submit" className="w-full px-6 py-3 bg-teal-500 text-slate-900 font-bold rounded-lg hover:bg-teal-400 transition">
+              {locale === 'en-US' ? 'Send Message' : '發送訊息'}
+            </button>
+          </form>
+        </div>
+      </section>
+    </main>
+  );
+
+  const ContactDetail = ({ icon: Icon, label, value, link }) => (
+    <div className="flex items-start space-x-3">
+      <Icon className="w-6 h-6 text-teal-400 flex-shrink-0 mt-1" />
+      <div>
+        <span className="font-semibold text-white">{label}</span>
+        {link ? (
+          <a href={link} className="block text-slate-300 hover:text-teal-300 transition" target={link.startsWith('http') ? '_blank' : '_self'} rel={link.startsWith('http') ? 'noopener noreferrer' : undefined}>
+            {value}
+          </a>
+        ) : (
+          <span className="block text-slate-300">{value}</span>
+        )}
+      </div>
+    </div>
+  );
+
+
+  // --- Main Render Function (Page Router) ---
+  const renderPage = () => {
+    switch (activePage) {
+      case 'Home':
+        return <HomePage />;
+      case 'Curriculum':
+        return <CurriculumPage />;
+      case 'Admission':
+        return <AdmissionPage />;
+      default:
+        return <HomePage />;
+    }
+  };
+
+  return (
+    <div className="min-h-screen font-sans antialiased bg-slate-900">
+      <style>{`
+        /* Custom Styles for better visual appeal */
+        @keyframes subtle-pulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.4); }
+          50% { box-shadow: 0 0 10px 5px rgba(45, 212, 191, 0.6); }
+        }
+        .hero-cta-button:hover {
+          animation: subtle-pulse 1.5s infinite;
+        }
+        /* Ensure font consistency */
+        body {
+          font-family: 'Inter', sans-serif;
+        }
+      `}</style>
+      {/* SEO/A11y Meta: Placeholder for full localization. The useEffect hook updates these dynamically. */}
+      <meta charSet="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+      <Header />
+      {renderPage()}
+      <Footer />
+    </div>
+  );
+};
+
+export default App;
