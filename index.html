@@ -1,719 +1,1044 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-
-// --- Global Constants (External Links) ---
-const NCNU_URL = 'https://www.ncnu.edu.tw';
-const BAITIA_DEPT_URL = 'https://baitia.ncnu.edu.tw/p/404-1084-24750.php?Lang=en';
-const LOGO_URL = 'https://service.ncnu.edu.tw/ncnuweb/units/share/%E5%85%A8%E6%A0%A1%E5%85%B1%E7%94%A8/web_material/material-logo.htm';
-const APPLY_URL = 'https://exam.ncnu.edu.tw/114FApply.html';
-const CURRICULUM_MAIN_URL = 'https://baitia.ncnu.edu.tw/p/404-1084-24760.php?Lang=en';
-const FB_URL = 'https://www.facebook.com/share/1BoKBKxXHZ/?';
-const YT_URL = 'https://youtube.com/channel/UCfW7jAUBy-yxZCxlsxe5ERg?si=Jr8gpLUAM5Di6elS';
-const IG_URL = 'https://www.instagram.com/ncnu_baitia?igsh=d2F6cWpudmU5M3Jp&utm_source=qr';
-
-const DEPARTMENT_LINKS = [
-  { key: 'dept_intl_studies', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1146.php?Lang=en' },
-  { key: 'dept_banking_finance', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1148.php?Lang=en' },
-  { key: 'dept_economics', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1145.php?Lang=en' },
-  { key: 'dept_info_management', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1147.php?Lang=en' },
-  { key: 'dept_tourism', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1149.php?Lang=en' },
-  { key: 'dept_computer_science', url: 'https://baitia.ncnu.edu.tw/p/403-1084-1151.php?Lang=en' },
-];
-
-// --- i18n Translation Data (CRITICAL) ---
-const i18n = {
-  'en-US': {
-    title: 'Next Horizon: Management & IT Innovation',
-    meta_description: 'Official trial website for the Next Horizon Master\'s program at NCNU BAITIA, focusing on interdisciplinary education across Management and IT.',
-    lang_name: 'English',
-    lang_toggle: '繁中',
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    // Header
-    header_proj_title: 'Next Horizon: Management & IT Innovation',
-    header_parent_org: 'National Chi Nan University (NCNU)',
-    header_dept_link: 'Department of Business Admission and Innovation Technology Innovation and Application (BAITIA)',
-    notice_title: 'Note:',
-    notice_content: 'This is a Trial website for a group project of the Digital Marketing course (elective in BAITIA).',
-    notice_dismiss: 'Dismiss',
-    nav_home: 'Home',
-    nav_curriculum: 'Curriculum Planning',
-    nav_admission: 'Admission',
-
-    // Curriculum Department Names (for Dropdown)
-    dept_intl_studies: 'Department of International Studies',
-    dept_banking_finance: 'Department of Banking and Finance',
-    dept_economics: 'Department of Economics',
-    dept_info_management: 'Department of Information Management',
-    dept_tourism: 'Department of Tourism',
-    dept_computer_science: 'Department of Computer Science',
+    <!-- 
+      Metadata will be updated dynamically by JavaScript.
+      These are the English defaults.
+    -->
+    <title>Next Horizon: Business Management & IT Innovation</title>
+    <meta name="description" content="A Master's program at NCNU's BAITIA — Learn from experts in five management disciplines shaping the global business landscape.">
     
-    // Home Page
-    hero_headline: 'Five Disciplines. One Integrated Vision.',
-    hero_subhead: 'Master the future of business at the intersection of Management and Information Technology.',
-    cta_explore: 'Explore Curriculum',
-    cta_apply: 'Apply Now',
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    section_about_title: 'The BAITIA Advantage',
-    section_about_p1: 'Our Master’s program delivers comprehensive management education built upon the depth of six collaborating academic departments. This cross-disciplinary approach—spanning **International Studies, Finance, Economics, Information Management, Tourism, and Computer Science**—ensures real-world relevance and prepares leaders for the digital age.',
-    section_about_p2: 'The program emphasizes innovative thinking, data-driven decision-making, and ethical leadership in a global context. We provide an integrated learning journey, not a fragmented one.',
-
-    section_features_title: 'Program Focus',
-    feature_tech_title: 'IT Innovation',
-    feature_tech_desc: 'Focus on emerging technologies, big data analytics, and digital transformation strategy.',
-    feature_mgt_title: 'Strategic Management',
-    feature_mgt_desc: 'Develop deep expertise in strategic planning, organizational behavior, and effective leadership.',
-    feature_global_title: 'Global Perspective',
-    feature_global_desc: 'Gain insights into international business practices, cross-cultural management, and market dynamics.',
-
-    section_testimonials_title: 'Student Success Stories',
-    testimonial_quote_1: '"The interdisciplinary focus gave me the confidence to bridge the gap between technical teams and management. Truly a \'Next Horizon\' education."',
-    testimonial_author_1: 'Alex Chen, Class of 2023',
-    testimonial_quote_2: '"The curriculum is highly practical and the faculty, drawn from six departments, offers unparalleled depth. It transformed my career outlook."',
-    testimonial_author_2: 'Dr. Jane Lee, Startup Founder',
-
-    // Curriculum Page
-    curriculum_header: 'Integrated Curriculum Planning',
-    curriculum_intro: 'Our program is designed to deliver a cohesive, yet diverse, learning experience. Review the full planning document or explore contributions from our partner departments below.',
-    curriculum_download_pdf: 'Download Program PDF',
-    curriculum_map_title: 'Curriculum Map Placeholder',
-    curriculum_map_desc: 'A visual timeline or semester planner is available here.',
+    <!-- Google Fonts: Inter (Latin) and Noto Sans TC (Traditional Chinese) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     
-    // Admission Page
-    admission_header: 'Admission & Application',
-    admission_cta_headline: 'Ready to Lead the Next Horizon?',
-    admission_cta_subhead: 'Your journey starts here. Review application policies and connect with our team.',
-    admission_contact_title: 'Contact Us',
-    contact_email: 'Email:',
-    contact_phone: 'Phone:',
-    contact_hours: 'Office Hours:',
-    contact_email_val: 'baitia@ncnu.edu.tw',
-    contact_phone_val: '(+886) 49-2910960 ext 4676',
-    contact_hours_val: 'Mon-Fri, 9:00 AM - 5:00 PM (Taiwan Time)',
-    admission_policies: 'View Admission Policies & Tuition Notes',
-    
-    // Footer
-    footer_address_title: 'NCNU Address',
-    footer_address_val: 'No. 1, University Road, Puli Township, Nantou County 545, Taiwan (R.O.C.)',
-    footer_contact_title: 'BAITIA Contact',
-    footer_copyright: '© 2024 NCNU BAITIA. All Rights Reserved.',
-  },
-  'zh-TW': {
-    title: '未來領航：管理與資訊科技創新',
-    meta_description: '國立暨南國際大學企管碩專班與創新科技應用學系(BAITIA)「未來領航」碩士學程試驗網站，專注於跨管理與資訊科技的學科教育。',
-    lang_name: '繁體中文',
-    lang_toggle: 'EN',
-
-    // Header
-    header_proj_title: '未來領航：管理與資訊科技創新',
-    header_parent_org: '國立暨南國際大學 (NCNU)',
-    header_dept_link: '企業管理碩士在職專班與創新科技應用學系 (BAITIA)',
-    notice_title: '備註:',
-    notice_content: '此網站是數位行銷課程（企管碩專班與創新科技應用學系選修）小組專題的試驗網站。',
-    notice_dismiss: '關閉',
-    nav_home: '首頁',
-    nav_curriculum: '課程規劃',
-    nav_admission: '招生資訊',
-
-    // Curriculum Department Names (for Dropdown)
-    dept_intl_studies: '國際企業學系',
-    dept_banking_finance: '銀行與金融學系',
-    dept_economics: '經濟學系',
-    dept_info_management: '資訊管理學系',
-    dept_tourism: '觀光休閒學系',
-    dept_computer_science: '資訊工程學系',
-
-    // Home Page
-    hero_headline: '五大學科。一個整合視野。',
-    hero_subhead: '在管理與資訊科技的交會點，掌握商業的未來。',
-    cta_explore: '探索課程',
-    cta_apply: '立即申請',
-    
-    section_about_title: 'BAITIA的優勢',
-    section_about_p1: '我們的碩士課程提供全面的管理教育，其基礎源自六個協作的學術系所。這種跨學科的方法—涵蓋**國際企業、銀行與金融、經濟學、資訊管理、觀光休閒、以及資訊工程**—確保了課程的實用性，並為數位時代培養領導者。',
-    section_about_p2: '本學程強調創新思維、數據驅動決策，以及全球背景下的道德領導力。我們提供的是一個整合的學習旅程，而非零散的知識。',
-
-    section_features_title: '學程重點',
-    feature_tech_title: '資訊科技創新',
-    feature_tech_desc: '專注於新興技術、大數據分析和數位轉型策略。',
-    feature_mgt_title: '策略管理',
-    feature_mgt_desc: '培養策略規劃、組織行為和有效領導力方面的深厚專業知識。',
-    feature_global_title: '全球視野',
-    feature_global_desc: '深入了解國際商業實務、跨文化管理和市場動態。',
-
-    section_testimonials_title: '學生成功案例',
-    testimonial_quote_1: '"跨學科的重點讓我有信心去彌合技術團隊與管理層之間的鴻溝。這真是一次「未來領航」的教育。"',
-    testimonial_author_1: '陳立明 (Alex Chen), 2023屆',
-    testimonial_quote_2: '"課程非常實用，來自六個系所的師資提供了無與倫比的深度。它徹底改變了我的職業前景。"',
-    testimonial_author_2: '李珍妮 博士 (Dr. Jane Lee), 創業家',
-
-    // Curriculum Page
-    curriculum_header: '整合課程規劃',
-    curriculum_intro: '我們的學程旨在提供一個連貫而多樣化的學習體驗。請查閱完整的規劃文件，或探索下方各合作系所的貢獻。',
-    curriculum_download_pdf: '下載學程PDF',
-    curriculum_map_title: '課程地圖佔位符',
-    curriculum_map_desc: '此處提供視覺化的時間表或學期規劃器。',
-
-    // Admission Page
-    admission_header: '招生與申請',
-    admission_cta_headline: '準備好引領未來領航了嗎？',
-    admission_cta_subhead: '您的旅程從這裡開始。請查閱申請政策並聯繫我們的團隊。',
-    admission_contact_title: '聯繫我們',
-    contact_email: '電子郵件:',
-    contact_phone: '電話:',
-    contact_hours: '辦公時間:',
-    contact_email_val: 'baitia@ncnu.edu.tw',
-    contact_phone_val: '(+886) 49-2910960 分機 4676',
-    contact_hours_val: '週一至週五, 9:00 AM - 5:00 PM (台灣時間)',
-    admission_policies: '查看入學政策與學費須知',
-
-    // Footer
-    footer_address_title: '暨南大學地址',
-    footer_address_val: '545 南投縣埔里鎮大學路一號 (R.O.C.)',
-    footer_contact_title: 'BAITIA 聯繫方式',
-    footer_copyright: '© 2024 NCNU BAITIA. 版權所有。',
-  }
-};
-
-// --- Utility Components (Inline SVGs for Icons) ---
-const IconMenu = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>);
-const IconX = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>);
-const IconChevronDown = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>);
-const IconBookOpen = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>);
-const IconUsers = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>);
-const IconBriefcase = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>);
-const IconBarChart = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>);
-const IconLightbulb = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 14c.2-1 .9-2 1.5-3.2A12 12 0 0 0 16 2C11 2 9 7 9 7a8 8 0 0 0-3 6.7c-.5 1.7-.5 4.6 1 6.3l.8.8c.8.8 1.6 1 2.8 1h2.2c1.2 0 2-.2 2.8-1l.8-.8c1.5-1.7 1.5-4.6 1-6.3z"></path></svg>);
-const IconGlobe = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>);
-const IconDownload = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>);
-const IconMail = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>);
-const IconPhone = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-3.67-3.67A19.79 19.79 0 0 1 3 4.18C3 3 3.82 2.18 4.9 2H7.08a2 2 0 0 1 2 1.73l.7 4.88a2 2 0 0 1-.5 1.77L5.8 15.93a12 12 0 0 0 6.27 6.27l3.65-3.65a2 2 0 0 1 1.77-.5l4.88.7A2 2 0 0 1 22 16.92z"></path></svg>);
-const IconClock = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>);
-
-// --- Main App Component ---
-const App = () => {
-  const [locale, setLocale] = useState('en-US');
-  const [activePage, setActivePage] = useState('Home');
-  const [isNoticeVisible, setIsNoticeVisible] = useState(true);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isCurriculumDropdownOpen, setIsCurriculumDropdownOpen] = useState(false);
-
-  // Memoize the current translations
-  const t = useMemo(() => i18n[locale] || i18n['en-US'], [locale]);
-  const langToggleText = useMemo(() => locale === 'en-US' ? 'zh-TW' : 'en-US', [locale]);
-
-  // Handle language switch
-  const handleLanguageSwitch = useCallback(() => {
-    const newLocale = locale === 'en-US' ? 'zh-TW' : 'en-US';
-    setLocale(newLocale);
-    // Update the BAITIA link dynamically based on the current page for consistency
-    const baitiaLink = newLocale === 'en-US'
-      ? BAITIA_DEPT_URL.replace('Lang=zh-TW', 'Lang=en')
-      : BAITIA_DEPT_URL.replace('Lang=en', 'Lang=zh-TW');
-    document.getElementById('baitia-dept-link').href = baitiaLink;
-  }, [locale]);
-
-  // Update document metadata for SEO based on language
-  useEffect(() => {
-    document.title = t.title;
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', t.meta_description);
-    } else {
-      const meta = document.createElement('meta');
-      meta.name = 'description';
-      meta.content = t.meta_description;
-      document.head.appendChild(meta);
-    }
-    // Set HTML lang attribute for accessibility
-    document.documentElement.lang = locale === 'en-US' ? 'en' : 'zh';
-  }, [t, locale]);
-
-  // --- Components ---
-
-  const NavItem = ({ page, label, url = null, isDropdown = false }) => {
-    const baseClasses = 'block md:inline-flex items-center text-sm font-medium transition duration-150 ease-in-out px-3 py-2 rounded-lg';
-    const activeClasses = 'text-teal-400 bg-slate-800 hover:text-teal-300';
-    const inactiveClasses = 'text-slate-200 hover:text-teal-400 hover:bg-slate-700';
-
-    if (url) {
-      return (
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${baseClasses} ${inactiveClasses} md:ml-4`}
-          aria-label={label}
-        >
-          {label}
-        </a>
-      );
-    }
-
-    if (isDropdown) {
-      return (
-        <div className="relative">
-          <button
-            onClick={() => setIsCurriculumDropdownOpen(!isCurriculumDropdownOpen)}
-            className={`${baseClasses} ${activePage === page ? activeClasses : inactiveClasses} w-full md:w-auto md:ml-4`}
-            aria-expanded={isCurriculumDropdownOpen}
-            aria-controls="curriculum-dropdown-menu"
-          >
-            {label}
-            <IconChevronDown className="ml-1 w-4 h-4" />
-          </button>
-          {isCurriculumDropdownOpen && (
-            <div
-              id="curriculum-dropdown-menu"
-              className="absolute z-30 md:top-full md:left-1/2 md:-translate-x-1/2 mt-2 w-full md:w-64 rounded-xl shadow-2xl bg-slate-800 ring-1 ring-teal-500/50 p-2 space-y-1"
-              role="menu"
-              aria-orientation="vertical"
-            >
-              <a
-                href={CURRICULUM_MAIN_URL.replace('Lang=en', `Lang=${locale === 'en-US' ? 'en' : 'zh-TW'}`)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block px-3 py-2 text-sm text-teal-400 hover:bg-slate-700 rounded-lg transition"
-              >
-                {t.nav_curriculum} ({locale === 'en-US' ? 'Main Page' : '主頁'})
-              </a>
-              <div className="border-t border-slate-700 pt-1">
-                {DEPARTMENT_LINKS.map((dept) => (
-                  <a
-                    key={dept.key}
-                    href={dept.url.replace('Lang=en', `Lang=${locale === 'en-US' ? 'en' : 'zh-TW'}`)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition"
-                    role="menuitem"
-                  >
-                    {t[dept.key]}
-                  </a>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    return (
-      <button
-        onClick={() => { setActivePage(page); setIsMenuOpen(false); setIsCurriculumDropdownOpen(false); }}
-        className={`${baseClasses} ${activePage === page ? activeClasses : inactiveClasses} w-full md:w-auto md:ml-4`}
-        aria-current={activePage === page ? 'page' : undefined}
-      >
-        {label}
-      </button>
-    );
-  };
-
-  const Header = () => (
-    <header className="bg-slate-900 sticky top-0 z-50 shadow-xl border-b border-teal-500/20">
-      {/* Trial Notice */}
-      {isNoticeVisible && (
-        <div className="bg-teal-700/80 text-white p-2 text-center text-sm font-semibold relative" role="alert">
-          <p className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <span className="font-extrabold mr-1">{t.notice_title}</span>
-            {t.notice_content}
-          </p>
-          <button
-            onClick={() => setIsNoticeVisible(false)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-teal-600 transition"
-            aria-label={t.notice_dismiss}
-          >
-            <IconX className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Main Header */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo and Titles */}
-          <div className="flex-shrink-0 flex items-center space-x-3">
-            <a href={LOGO_URL} target="_blank" rel="noopener noreferrer" aria-label="NCNU Official Logo Link">
-              {/* Placeholder for NCNU Logo */}
-              <div className="h-10 w-10 bg-teal-500 rounded-lg flex items-center justify-center font-bold text-slate-900 text-lg">N</div>
-            </a>
-            <div className="flex flex-col">
-              <span className="text-xl font-extrabold text-white tracking-tight">{t.header_proj_title}</span>
-              <a href={NCNU_URL} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-teal-400 transition">
-                {t.header_parent_org}
-              </a>
-              <a id="baitia-dept-link" href={BAITIA_DEPT_URL} target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 hover:text-teal-400 transition mt-0.5">
-                {t.header_dept_link}
-              </a>
-            </div>
-          </div>
-
-          {/* Desktop Nav and Controls */}
-          <div className="hidden md:flex items-center space-x-6">
-            <nav className="flex space-x-1" aria-label="Main Navigation">
-              <NavItem page="Home" label={t.nav_home} url={BAITIA_DEPT_URL} />
-              <NavItem page="Curriculum" label={t.nav_curriculum} isDropdown={true} />
-              <NavItem page="Admission" label={t.nav_admission} />
-            </nav>
-            <LanguageToggle />
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
-            <LanguageToggle className="mr-4" />
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
-              aria-expanded={isMenuOpen}
-              aria-controls="mobile-menu"
-              aria-label={isMenuOpen ? 'Close Menu' : 'Open Menu'}
-            >
-              {isMenuOpen ? <IconX className="w-6 h-6" /> : <IconMenu className="w-6 h-6" />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu Panel */}
-      {isMenuOpen && (
-        <div className="md:hidden absolute bg-slate-900 w-full shadow-lg p-4 transition-all duration-300 ease-in-out" id="mobile-menu">
-          <nav className="flex flex-col space-y-2" aria-label="Mobile Navigation">
-            <NavItem page="Home" label={t.nav_home} url={BAITIA_DEPT_URL} />
-            <NavItem page="Curriculum" label={t.nav_curriculum} isDropdown={true} />
-            <NavItem page="Admission" label={t.nav_admission} />
-          </nav>
-        </div>
-      )}
-    </header>
-  );
-
-  const Footer = () => (
-    <footer className="bg-slate-900 border-t border-teal-500/20 mt-12 py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-slate-400">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {/* Section 1: Project Info */}
-          <div>
-            <h4 className="text-white font-bold mb-3">{t.header_proj_title}</h4>
-            <p className="text-sm">{t.header_parent_org}</p>
-            <p className="text-sm mt-1">{t.header_dept_link}</p>
-          </div>
-
-          {/* Section 2: Contact Info */}
-          <div>
-            <h4 className="text-white font-bold mb-3">{t.footer_contact_title}</h4>
-            <p className="text-sm">
-              <span className="font-semibold">{t.contact_email}</span> {t.contact_email_val}
-            </p>
-            <p className="text-sm mt-1">
-              <span className="font-semibold">{t.contact_phone}</span> {t.contact_phone_val}
-            </p>
-          </div>
-
-          {/* Section 3: Address */}
-          <div>
-            <h4 className="text-white font-bold mb-3">{t.footer_address_title}</h4>
-            <address className="text-sm not-italic">{t.footer_address_val}</address>
-          </div>
-
-          {/* Section 4: Social & Controls */}
-          <div>
-            <h4 className="text-white font-bold mb-3">Connect</h4>
-            <div className="flex space-x-4 mb-4">
-              <a href={FB_URL} target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                <svg className="w-6 h-6 fill-current text-slate-400 hover:text-teal-400 transition" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 11h2v-3h-2v2h-2v-2h-2v3h2v2h-2v-3h-2v3h2v2h2v-2h2v2h2v-3h-2V11zm-2-9a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 22a9 9 0 1 1 0-18 9 9 0 0 1 0 18z"/><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM12 16c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
-              </a>
-              <a href={IG_URL} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                <svg className="w-6 h-6 fill-current text-slate-400 hover:text-teal-400 transition" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 11.37 16 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-              </a>
-              <a href={YT_URL} target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                <svg className="w-6 h-6 fill-current text-slate-400 hover:text-teal-400 transition" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.54 6.49c-.2-.72-.98-1.4-1.74-1.55C16.5 4 12 4 12 4s-4.5 0-7.8.94c-.76.16-1.54.83-1.74 1.55-.47 1.74-.47 4.5 0 6.24.2 1.3.98 1.98 1.74 2.14C6.5 19 12 19 12 19s4.5 0 7.8-.94c.76-.16 1.54-.83 1.74-1.55.47-1.74.47-4.5 0-6.24zM9.83 14.5v-5L15 12l-5.17 2.5z"/></svg>
-              </a>
-            </div>
-            <LanguageToggle />
-          </div>
-        </div>
-        <div className="mt-8 pt-6 border-t border-slate-700 text-center text-sm">
-          {t.footer_copyright}
-        </div>
-      </div>
-    </footer>
-  );
-
-  const LanguageToggle = ({ className = '' }) => (
-    <button
-      onClick={handleLanguageSwitch}
-      className={`flex items-center space-x-1 p-2 rounded-full bg-slate-800 text-white hover:bg-teal-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400 ${className}`}
-      aria-label={`Switch language to ${t.lang_toggle === 'EN' ? 'English' : 'Traditional Chinese'}`}
-    >
-      <IconGlobe className="w-4 h-4" />
-      <span className="text-sm font-semibold">{t.lang_toggle}</span>
-    </button>
-  );
-
-  // --- Page Content Components ---
-
-  const HomePage = () => (
-    <main className="min-h-screen bg-slate-900 text-white">
-      {/* 1. Hero Section */}
-      <section className="relative h-[60vh] md:h-[75vh] flex items-center justify-center overflow-hidden bg-slate-800">
-        {/* Background Visual (Placeholder Gradient/Animation) */}
-        <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-900 to-slate-800 opacity-90" aria-hidden="true"></div>
-        <div className="absolute inset-0 z-0 opacity-10" style={{ backgroundImage: "url('https://placehold.co/1920x1080/1e293b/2dd4bf?text=Collaboration+Innovation')" }} role="img" aria-label="Abstract background image conveying collaboration and innovation"></div>
-        
-        <div className="relative z-10 text-center max-w-4xl p-6 rounded-xl bg-slate-900/70 backdrop-blur-sm shadow-2xl">
-          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tighter mb-4 leading-tight text-teal-400">
-            {t.hero_headline}
-          </h1>
-          <p className="text-lg sm:text-xl text-slate-200 mb-8 max-w-2xl mx-auto">
-            {t.hero_subhead}
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-            <a
-              href={APPLY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-teal-500 text-slate-900 font-bold text-lg rounded-full shadow-lg hover:bg-teal-400 transition transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-teal-500/50"
-            >
-              {t.cta_apply}
-            </a>
-            <button
-              onClick={() => setActivePage('Curriculum')}
-              className="px-8 py-3 bg-slate-700 text-white font-bold text-lg rounded-full border-2 border-slate-600 hover:bg-slate-600 transition transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-slate-400/50"
-            >
-              {t.cta_explore}
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. About Section */}
-      <section className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-4xl font-extrabold text-teal-400 mb-8 border-b-4 border-teal-500/50 pb-2 inline-block">
-          {t.section_about_title}
-        </h2>
-        <div className="grid md:grid-cols-2 gap-10 text-lg text-slate-300">
-          <p className="leading-relaxed">{t.section_about_p1}</p>
-          <p className="leading-relaxed">{t.section_about_p2}</p>
-        </div>
-      </section>
-
-      {/* 3. Featured Panels / Program Focus */}
-      <section className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8 bg-slate-800 rounded-xl shadow-2xl">
-        <h2 className="text-3xl font-bold text-white mb-10 text-center">
-          {t.section_features_title}
-        </h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {[
-            { icon: IconLightbulb, title: t.feature_tech_title, desc: t.feature_tech_desc },
-            { icon: IconBarChart, title: t.feature_mgt_title, desc: t.feature_mgt_desc },
-            { icon: IconGlobe, title: t.feature_global_title, desc: t.feature_global_desc },
-          ].map((feature, index) => (
-            <div
-              key={index}
-              className="p-6 bg-slate-900 rounded-xl shadow-lg border border-slate-700 hover:border-teal-400 transition duration-300 transform hover:scale-[1.02] group"
-              tabIndex="0"
-            >
-              <feature.icon className="w-10 h-10 text-teal-400 mb-4 transition-colors group-hover:text-teal-300" />
-              <h3 className="text-xl font-bold text-white mb-2">{feature.title}</h3>
-              <p className="text-slate-400 text-sm">{feature.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 4. Student Experience / Testimonials */}
-      <section className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <h2 className="text-4xl font-extrabold text-teal-400 mb-10 text-center">
-          {t.section_testimonials_title}
-        </h2>
-        <div className="grid md:grid-cols-2 gap-8">
-          {[
-            { quote: t.testimonial_quote_1, author: t.testimonial_author_1 },
-            { quote: t.testimonial_quote_2, author: t.testimonial_author_2 },
-          ].map((testimonial, index) => (
-            <figure key={index} className="bg-slate-800 p-8 rounded-xl shadow-xl border-l-4 border-teal-500">
-              <blockquote className="text-lg italic text-slate-200 mb-4">
-                "{testimonial.quote}"
-              </blockquote>
-              <figcaption className="text-sm font-semibold text-teal-300">
-                — {testimonial.author}
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
-    </main>
-  );
-
-  const CurriculumPage = () => (
-    <main className="min-h-screen bg-slate-900 text-white max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <h1 className="text-5xl font-extrabold text-teal-400 mb-4">{t.curriculum_header}</h1>
-      <p className="text-xl text-slate-300 mb-8">{t.curriculum_intro}</p>
-
-      {/* Curriculum CTA and Download */}
-      <div className="flex flex-col sm:flex-row items-center justify-between p-6 bg-slate-800 rounded-xl shadow-lg mb-10">
-        <a
-          href={CURRICULUM_MAIN_URL.replace('Lang=en', `Lang=${locale === 'en-US' ? 'en' : 'zh-TW'}`)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-2 px-6 py-3 bg-teal-500 text-slate-900 font-bold rounded-full hover:bg-teal-400 transition"
-        >
-          <IconBookOpen className="w-5 h-5" />
-          <span>{t.nav_curriculum} ({locale === 'en-US' ? 'Main Document' : '主要文件'})</span>
-        </a>
-        <a
-          href="#" // Placeholder for actual PDF
-          className="flex items-center space-x-2 px-6 py-3 mt-4 sm:mt-0 bg-slate-700 text-white font-bold rounded-full hover:bg-slate-600 transition"
-          aria-label={t.curriculum_download_pdf}
-        >
-          <IconDownload className="w-5 h-5" />
-          <span>{t.curriculum_download_pdf}</span>
-        </a>
-      </div>
-      
-      {/* Department Links (Visual Card Format) */}
-      <h2 className="text-3xl font-bold text-white mb-6 mt-12">
-        {t.nav_curriculum} — {locale === 'en-US' ? 'Contributing Departments' : '協作系所'}
-      </h2>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {DEPARTMENT_LINKS.map((dept) => (
-          <a
-            key={dept.key}
-            href={dept.url.replace('Lang=en', `Lang=${locale === 'en-US' ? 'en' : 'zh-TW'}`)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-6 bg-slate-800 rounded-xl shadow-lg border border-slate-700 hover:border-teal-500 transition duration-300 transform hover:-translate-y-1 block group"
-          >
-            <div className="flex items-center space-x-3 mb-2">
-              <IconBriefcase className="w-6 h-6 text-teal-400 group-hover:text-teal-300" />
-              <h3 className="text-xl font-semibold text-white group-hover:underline">{t[dept.key]}</h3>
-            </div>
-            <p className="text-sm text-slate-400">
-              {locale === 'en-US' ? 'View departmental course contribution.' : '查看系所課程貢獻。'}
-            </p>
-          </a>
-        ))}
-      </div>
-
-      {/* Curriculum Map Placeholder */}
-      <div className="mt-16 p-8 bg-slate-800 rounded-xl border border-dashed border-slate-600 text-center">
-        <h3 className="text-2xl font-bold text-white mb-2">{t.curriculum_map_title}</h3>
-        <p className="text-slate-400">{t.curriculum_map_desc}</p>
-        <div className="mt-6 w-full h-40 bg-slate-700 rounded-lg flex items-center justify-center text-slate-500 font-mono">
-          [Interactive Timeline/Planner Component TBD]
-        </div>
-      </div>
-    </main>
-  );
-
-  const AdmissionPage = () => (
-    <main className="min-h-screen bg-slate-900 text-white max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <h1 className="text-5xl font-extrabold text-teal-400 mb-8">{t.admission_header}</h1>
-      
-      {/* CTA Section */}
-      <section className="bg-slate-800 p-8 rounded-xl shadow-2xl mb-12 border-l-8 border-teal-500">
-        <h2 className="text-3xl font-bold text-white mb-3">{t.admission_cta_headline}</h2>
-        <p className="text-lg text-slate-300 mb-6">{t.admission_cta_subhead}</p>
-        <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6">
-            <a
-              href={APPLY_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-teal-500 text-slate-900 font-bold text-lg rounded-full shadow-lg hover:bg-teal-400 transition transform hover:scale-105"
-            >
-              {t.cta_apply}
-            </a>
-            <a
-              href="#" // Placeholder for Policies
-              className="px-8 py-3 text-lg font-bold text-teal-400 hover:text-teal-300 transition"
-              aria-label={t.admission_policies}
-            >
-              {t.admission_policies}
-            </a>
-        </div>
-      </section>
-
-      {/* Contact Form & Info */}
-      <section className="grid md:grid-cols-2 gap-10">
-        {/* Contact Information */}
-        <div className="bg-slate-800 p-8 rounded-xl shadow-lg">
-          <h3 className="text-3xl font-bold text-white mb-6">{t.admission_contact_title}</h3>
-          <div className="space-y-4">
-            <ContactDetail icon={IconMail} label={t.contact_email} value={t.contact_email_val} link={`mailto:${t.contact_email_val}`} />
-            <ContactDetail icon={IconPhone} label={t.contact_phone} value={t.contact_phone_val} link={`tel:${t.contact_phone_val.replace(/[^0-9+]/g, '')}`} />
-            <ContactDetail icon={IconClock} label={t.contact_hours} value={t.contact_hours_val} />
-          </div>
-        </div>
-
-        {/* Contact Form Placeholder */}
-        <div className="bg-slate-800 p-8 rounded-xl shadow-lg">
-          <h3 className="text-3xl font-bold text-white mb-6">{locale === 'en-US' ? 'Quick Inquiry' : '快速諮詢'}</h3>
-          <form className="space-y-4">
-            <input type="text" placeholder={locale === 'en-US' ? 'Your Name' : '您的姓名'} className="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 focus:ring-teal-500 focus:border-teal-500 text-white" aria-label={locale === 'en-US' ? 'Your Name' : '您的姓名'} />
-            <input type="email" placeholder={locale === 'en-US' ? 'Your Email' : '您的電子郵件'} className="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 focus:ring-teal-500 focus:border-teal-500 text-white" aria-label={locale === 'en-US' ? 'Your Email' : '您的電子郵件'} />
-            <textarea placeholder={locale === 'en-US' ? 'Your Message' : '您的訊息'} rows="4" className="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 focus:ring-teal-500 focus:border-teal-500 text-white" aria-label={locale === 'en-US' ? 'Your Message' : '您的訊息'}></textarea>
-            <button type="submit" className="w-full px-6 py-3 bg-teal-500 text-slate-900 font-bold rounded-lg hover:bg-teal-400 transition">
-              {locale === 'en-US' ? 'Send Message' : '發送訊息'}
-            </button>
-          </form>
-        </div>
-      </section>
-    </main>
-  );
-
-  const ContactDetail = ({ icon: Icon, label, value, link }) => (
-    <div className="flex items-start space-x-3">
-      <Icon className="w-6 h-6 text-teal-400 flex-shrink-0 mt-1" />
-      <div>
-        <span className="font-semibold text-white">{label}</span>
-        {link ? (
-          <a href={link} className="block text-slate-300 hover:text-teal-300 transition" target={link.startsWith('http') ? '_blank' : '_self'} rel={link.startsWith('http') ? 'noopener noreferrer' : undefined}>
-            {value}
-          </a>
-        ) : (
-          <span className="block text-slate-300">{value}</span>
-        )}
-      </div>
-    </div>
-  );
-
-
-  // --- Main Render Function (Page Router) ---
-  const renderPage = () => {
-    switch (activePage) {
-      case 'Home':
-        return <HomePage />;
-      case 'Curriculum':
-        return <CurriculumPage />;
-      case 'Admission':
-        return <AdmissionPage />;
-      default:
-        return <HomePage />;
-    }
-  };
-
-  return (
-    <div className="min-h-screen font-sans antialiased bg-slate-900">
-      <style>{`
-        /* Custom Styles for better visual appeal */
-        @keyframes subtle-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.4); }
-          50% { box-shadow: 0 0 10px 5px rgba(45, 212, 191, 0.6); }
-        }
-        .hero-cta-button:hover {
-          animation: subtle-pulse 1.5s infinite;
-        }
-        /* Ensure font consistency */
+    <style>
+        /* Base font settings */
         body {
-          font-family: 'Inter', sans-serif;
+            font-family: 'Inter', 'Noto Sans TC', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-      `}</style>
-      {/* SEO/A11y Meta: Placeholder for full localization. The useEffect hook updates these dynamically. */}
-      <meta charSet="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-      <Header />
-      {renderPage()}
-      <Footer />
+        /* Hide elements */
+        .page-hidden {
+            display: none;
+        }
+
+        /* Styles for the active nav link */
+        .nav-link-active {
+            color: #2563EB; /* text-blue-600 */
+            font-weight: 600;
+            border-bottom-width: 2px;
+            border-color: #2563EB; /* border-blue-600 */
+        }
+
+        /* Focus styles for accessibility */
+        :focus-visible {
+            outline: 2px solid #2563EB;
+            outline-offset: 2px;
+            border-radius: 4px;
+        }
+
+        /* Smooth scroll for anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Custom dropdown styles for hover */
+        .group:hover .group-hover\:block {
+            display: block;
+        }
+</style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-XCR8GF65FX');
+</script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- 
+      Dismissible Trial Site Notice
+      As requested, prominent but unobtrusive.
+    -->
+    <div id="trial-notice" class="relative bg-yellow-100 border-b border-yellow-200 text-yellow-900 p-3 text-center text-sm font-medium">
+        <p>
+            <strong data-lang-key="trail.notice.label">Note:</strong>
+            <span data-lang-key="trail.notice.text">This is a Trial website for a bonus assignment of Competitive Dynamics and Platform Strategies Course (an elective in BAITIA).</span>
+        </p>
+        <button id="trial-notice-dismiss" class="absolute top-1/2 right-4 -translate-y-1/2 p-1 rounded-full text-yellow-900 hover:bg-yellow-200 focus-visible:bg-yellow-200" data-lang-key-aria-label="trail.notice.dismiss">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
     </div>
-  );
-};
 
-export default App;
+    <!-- 
+      Main Header
+      Sticky, with logo, titles, nav, and toggles.
+    -->
+    <header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm shadow-md">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" aria-label="Main">
+            <div class="flex justify-between items-center h-20">
+                
+                <!-- Left: Logo & Titles -->
+                <div class="flex items-center gap-3">
+                    <a href="https://www.ncnu.edu.tw" target="_blank" rel="noopener noreferrer" class="flex-shrink-0" data-lang-key-aria-label="header.ncnuLink">
+                        <img class="h-12 w-auto" src="https://service.ncnu.edu.tw/ncnuweb/units/share/%E5%85%A8%E6%A0%A1%E5%85%B1%E7%94%A8/web_material/images/logo/ps/NCNU_logo%E5%9C%96%E8%88%87%E5%BA%95%E6%96%87%E5%AD%97.jpg" alt="National Chi Nan University Logo">
+                    </a>
+                    <div>
+                        <h1 class="text-base sm:text-lg font-bold text-gray-900 leading-tight" data-lang-key="project.title">Next Horizon: Business Management & IT Innovation</h1>
+                        <div class="text-xs sm:text-sm">
+                            <a href="https://www.ncnu.edu.tw" target="_blank" rel="noopener noreferrer" class="text-blue-700 hover:underline" data-lang-key="project.parent.ncnu">National Chi Nan University (NCNU)</a>
+                            <span class="mx-1 text-gray-400">|</span>
+                            <a href="https://baitia.ncnu.edu.tw/p/404-1084-24750.php?Lang=en" target="_blank" rel="noopener noreferrer" class="text-blue-700 hover:underline" data-lang-key="project.parent.baitia">BAITIA</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Desktop Nav & Toggles -->
+                <div class="flex items-center gap-3">
+                    <div class="hidden md:flex items-center gap-6">
+                        <!-- Desktop Nav Links -->
+                        <button class="nav-link py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors" data-page="home" data-lang-key="nav.home">Home</button>
+                        
+                        <!-- Desktop Curriculum Dropdown -->
+                        <div class="relative group">
+                            <button class="nav-link py-2 flex items-center gap-1 text-gray-600 hover:text-blue-600 font-medium transition-colors" data-page="curriculum">
+                                <span data-lang-key="nav.curriculum">Curriculum Planning</span>
+                                <svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06 0L10 10.94l3.71-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 010-1.06z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div class="absolute -right-8 top-full z-10 mt-2 w-72 origin-top-right rounded-md bg-white shadow-xl py-2 hidden group-hover:block focus:outline-none ring-1 ring-black ring-opacity-5">
+                                <a href="https://baitia.ncnu.edu.tw/p/404-1084-24760.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 font-semibold" data-lang-key="nav.curriculum.overview">Curriculum Planning Page</a>
+                                <div class="border-t border-gray-100 my-1"></div>
+                                <a href="https://baitia.ncnu.edu.tw/p/403-1084-1146.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang-key="nav.curriculum.dept1">Department of International Studies</a>
+                                <a href="https://baitia.ncnu.edu.tw/p/403-1084-1148.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang-key="nav.curriculum.dept2">Department of Banking and Finance</a>
+                                <a href="https://baitia.ncnu.edu.tw/p/403-1084-1145.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang-key="nav.curriculum.dept3">Department of Economics</a>
+                                <a href="https://baitia.ncnu.edu.tw/p/403-1084-1147.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang-key="nav.curriculum.dept4">Department of Information Management</a>
+                                <a href="https://baitia.ncnu.edu.tw/p/403-1084-1149.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang-key="nav.curriculum.dept5">Department of Tourism</a>
+                                <a href="https://baitia.ncnu.edu.tw/p/403-1084-1151.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-lang-key="nav.curriculum.dept6">Department of Computer Science</a>
+                            </div>
+                        </div>
+
+                        <button class="nav-link py-2 text-gray-600 hover:text-blue-600 font-medium transition-colors" data-page="admission" data-lang-key="nav.admission">Admission</button>
+                    </div>
+
+                    <!-- Language Toggle -->
+                    <button id="lang-toggle" class="flex-shrink-0 p-2 rounded-full text-gray-600 hover:bg-gray-100 hover:text-blue-600 transition-colors" data-lang-key-aria-label="nav.toggleLang">
+                        <span class="text-sm font-semibold">繁中</span>
+                        <svg class="w-5 h-5 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 21l5.25-11.25L21 21m-9-3h7.5M3 5.621a48.474 48.474 0 016-.371m0 0c1.12 0 2.233.038 3.334.114M9 5.25V3m3.334 2.364C13.18 6.062 14.12 6.5 15 7m-8.666-1.75h10.332A48.36 48.36 0 0112 11.25c-2.282 0-4.44-.33-6.5- .93m0 0c-1.12 0-2.233.038-3.334.114M5.5 5.25V3m3.334 2.364C9.82 6.062 10.76 6.5 11.666 7" />
+                        </svg>
+                    </button>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-btn" class="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100" data-lang-key-aria-label="nav.toggleMenu">
+                        <svg id="mobile-menu-icon-open" class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                        <svg id="mobile-menu-icon-close" class="w-6 h-6 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Mobile Menu Panel -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white shadow-lg border-t border-gray-100">
+            <div class="px-4 pt-2 pb-4 space-y-2">
+                <button class="nav-link block w-full text-left px-3 py-2 rounded-md font-medium text-gray-700 hover:bg-gray-50" data-page="home" data-lang-key="nav.home">Home</button>
+                
+                <!-- Mobile Curriculum Accordion -->
+                <details class="group">
+                    <summary class="nav-link flex justify-between items-center w-full px-3 py-2 rounded-md font-medium text-gray-700 hover:bg-gray-50 cursor-pointer" data-page="curriculum">
+                        <span data-lang-key="nav.curriculum">Curriculum Planning</span>
+                        <svg class="w-5 h-5 text-gray-500 group-open:rotate-180 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06 0L10 10.94l3.71-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.23 8.27a.75.75 0 010-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </summary>
+                    <div class="pl-4 mt-2 space-y-1">
+                        <a href="https://baitia.ncnu.edu.tw/p/404-1084-24760.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50" data-lang-key="nav.curriculum.overview">Curriculum Planning Page</a>
+                        <a href="https://baitia.ncnu.edu.tw/p/403-1084-1146.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50" data-lang-key="nav.curriculum.dept1">Dept of International Studies</a>
+                        <a href="https://baitia.ncnu.edu.tw/p/403-1084-1148.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50" data-lang-key="nav.curriculum.dept2">Dept of Banking and Finance</a>
+                        <a href="https://baitia.ncnu.edu.tw/p/403-1084-1145.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50" data-lang-key="nav.curriculum.dept3">Dept of Economics</a>
+                        <a href="https://baitia.ncnu.edu.tw/p/403-1084-1147.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50" data-lang-key="nav.curriculum.dept4">Dept of Information Management</a>
+                        <a href="https://baitia.ncnu.edu.tw/p/403-1084-1149.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50" data-lang-key="nav.curriculum.dept5">Dept of Tourism</a>
+                        <a href="https://baitia.ncnu.edu.tw/p/403-1084-1151.php?Lang=en" target="_blank" rel="noopener noreferrer" class="block px-3 py-2 text-sm rounded-md text-gray-600 hover:bg-gray-50" data-lang-key="nav.curriculum.dept6">Dept of Computer Science</a>
+                    </div>
+                </details>
+
+                <button class="nav-link block w-full text-left px-3 py-2 rounded-md font-medium text-gray-700 hover:bg-gray-50" data-page="admission" data-lang-key="nav.admission">Admission</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 
+      Main Content Area
+      Pages will be swapped here by JS
+    -->
+    <main role="main" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+
+        <!-- =================================== -->
+        <!-- HOME PAGE                         -->
+        <!-- =================================== -->
+        <section id="page-home" class="page-section">
+            
+            <!-- Hero Section -->
+            <div class="relative overflow-hidden bg-gradient-to-r from-blue-700 to-cyan-500 rounded-2xl shadow-xl p-12 md:p-20 text-center">
+                <div class="relative z-10">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-white tracking-tight" data-lang-key="hero.title">Next Horizon: Business Management & IT Innovation</h2>
+                    <p class="mt-4 text-lg md:text-xl text-blue-100 max-w-3xl mx-auto" data-lang-key="hero.subtitle">A Master's program at NCNU's BAITIA — Learn from experts in five management disciplines shaping the global business landscape.</p>
+                    <div class="mt-10 flex flex-wrap justify-center gap-4">
+                        <a href="https://exam.ncnu.edu.tw/114FApply.html" target="_blank" rel="noopener noreferrer" class="inline-block px-6 py-3 bg-white text-blue-700 font-semibold rounded-lg shadow-md hover:bg-gray-100 transition-colors" data-lang-key="cta.apply">Apply Now</a>
+                        <button class="inline-block px-6 py-3 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition-colors backdrop-blur-sm" data-page="curriculum" data-lang-key="cta.curriculum">View Curriculum</button>
+                    </div>
+                </div>
+                <!-- Optional: decorative elements -->
+                <div class="absolute -bottom-1/4 -left-1/4 w-96 h-96 bg-white/5 rounded-full opacity-50" aria-hidden="true"></div>
+                <div class="absolute -top-1/4 -right-1/4 w-72 h-72 bg-white/5 rounded-full opacity-50" aria-hidden="true"></div>
+            </div>
+
+            <!-- Three Feature Panels -->
+            <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Panel 1: Program Overview -->
+                <a href="https://baitia.ncnu.edu.tw/p/404-1084-24750.php?Lang=en" target="_blank" rel="noopener noreferrer" class="group block p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1">
+                    <div class="p-3 bg-blue-100 rounded-full w-fit">
+                        <svg class="w-8 h-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 text-xl font-bold text-gray-900" data-lang-key="home.panel1.title">Program Overview</h3>
+                    <p class="mt-2 text-gray-600" data-lang-key="home.panel1.desc">Explore the official homepage of the BAITIA department. Learn more about our mission, faculty, and resources.</p>
+                </a>
+                
+                <!-- Panel 2: Curriculum Snapshot -->
+                <button class="group text-left w-full p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1" data-page="curriculum">
+                    <div class="p-3 bg-green-100 rounded-full w-fit">
+                        <svg class="w-8 h-8 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18c-2.305 0-4.408.867-6 2.292m0-14.25v14.25" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 text-xl font-bold text-gray-900" data-lang-key="home.panel2.title">Curriculum Snapshot</h3>
+                    <p class="mt-2 text-gray-600" data-lang-key="home.panel2.desc">See the full list of required and elective courses, designed to build interdisciplinary expertise.</p>
+                </button>
+
+                <!-- Panel 3: Connect with BAITIA -->
+                <button class="group text-left w-full p-8 bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 transform hover:-translate-y-1" data-page="admission">
+                    <div class="p-3 bg-red-100 rounded-full w-fit">
+                        <svg class="w-8 h-8 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 text-xl font-bold text-gray-900" data-lang-key="home.panel3.title">Admission Details</h3>
+                    <p class="mt-2 text-gray-600" data-lang-key="home.panel3.desc">Find application checklists, requirements, fees, and contact information to start your journey.</p>
+                </button>
+            </div>
+
+        </section>
+
+        <!-- =================================== -->
+        <!-- CURRICULUM PAGE                 -->
+        <!-- =================================== -->
+        <section id="page-curriculum" class="page-section page-hidden">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900" data-lang-key="curriculum.title">Curriculum Planning</h2>
+            <p class="mt-4 text-lg text-gray-600 max-w-3xl" data-lang-key="curriculum.intro">Our curriculum blends core business management principles with cutting-edge information technology, drawing expertise from six departments across the College of Management.</p>
+            <a href="https://baitia.ncnu.edu.tw/p/404-1084-24760.php?Lang=en" target="_blank" rel="noopener noreferrer" class="inline-block mt-6 px-5 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors" data-lang-key="curriculum.viewOfficial">View Official Curriculum Page</a>
+
+            <div class="mt-12">
+                <h3 class="text-2xl font-bold text-gray-900" data-lang-key="curriculum.listTitle">Sample Course List</h3>
+                <p class="mt-1 text-gray-600" data-lang-key="curriculum.listSubtitle">Courses are subject to change. Please refer to the official page for the final curriculum.</p>
+                
+                <div class="mt-6 bg-white p-6 md:p-8 rounded-2xl shadow-lg">
+                    <ul class="space-y-3 md:space-y-2 md:column-2 text-gray-700">
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.1">Research Methods</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.2">Topics of Artificial Intelligence and Prospective Information Technology</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.3">Seminar of Business Administration and Information Technology Innovation</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.4">Business Management Analytics</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.5">Advanced Big Data Analytics and Modeling</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.6">Digital Marketing</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.7">Co-opetitive Dynamics and Platform Strategy</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.8">Green Finance</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.9">Environmental, Social, and Governance (ESG) Principles for Sustainable Businesses</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.10">Global Industry Competitive Analysis</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.11">Seminar on Econometrics</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.12">Econometrics I</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.13">Empirical Research Methods of Finance</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.14">Financial Management</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.15">Python for Finance</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.16">Strategic Management of Multinational Corporations</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.17">Modern Organization Management</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.18">Organization Behavior and Theory</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.19">Industry Trends and Business Models</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.20">Management</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.21">World Economics and Politics</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.22">Tourism Marketing</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.23">Design Thinking</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.24">Programming and Computer System</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.25">Seminars on Organizational Behavior</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.26">Industrial Economics</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.27">Advanced operations research</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.28">Investment Management</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.29">Business News and Analysis</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.30">Industry Trends and Business Models</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.31">Economic and Finance Empirical Data Analysis</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <svg class="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" /></svg>
+                            <span data-lang-key="course.32">Advanced Organization Theory</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- =================================== -->
+        <!-- ADMISSION PAGE                  -->
+        <!-- =================================== -->
+        <section id="page-admission" class="page-section page-hidden">
+            <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900" data-lang-key="admission.title">Admission</h2>
+            
+            <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
+                
+                <!-- Main Content Column -->
+                <div class="lg:col-span-2 space-y-12">
+                    
+                    <!-- Application Checklist -->
+                    <section>
+                        <h3 class="text-2xl font-bold text-gray-900" data-lang-key="admission.steps.title">Application Checklist</h3>
+                        <p class="mt-1 text-gray-600" data-lang-key="admission.steps.subtitle">Ensure you have all required documents before applying.</p>
+                        <div class="mt-6 space-y-4">
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">1</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item1">The application form (including scholarship application)</p>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">2</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item2">Photo copy of a valid passport or certificate of nationality</p>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">3</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item3">One copy of the highest-level diploma</p>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">4</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item4">One copy of the transcript of the highest degree earned</p>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">5</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item5">An autobiography</p>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">6</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item6">Statement of Undertaking</p>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">7</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item7">One study plan</p>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">8</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item8">One copy of a financial statement</Greate>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">9</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item9">Language proficiency test certificate</p>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">10</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item10">Complete undergraduate transcripts</p>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">11</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item11">Proof of English proficiency (Equivalent to or higher than CEFR B1 level, but not required for applicants from English-speaking countries)</p>
+                            </div>
+                            <!-- Checklist Item -->
+                            <div class="flex items-start gap-3 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
+                                <span class="flex-shrink-0 bg-blue-100 text-blue-700 font-bold rounded-full w-6 h-6 text-sm text-center pt-px">12</span>
+                                <p class="text-gray-700" data-lang-key="admission.steps.item12">Any other work that may facilitate the review of the application (e.g. Letters of recommendation)</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Graduation Requirements -->
+                    <section>
+                        <h3 class="text-2xl font-bold text-gray-900" data-lang-key="admission.grad.title">Graduation Requirements</h3>
+                        <ul class="mt-4 space-y-3 list-disc list-outside ml-5 text-gray-700">
+                            <li data-lang-key="admission.grad.item1">30 credits (9 credits of required courses + 21 credits of elective courses)</li>
+                            <li data-lang-key="admission.grad.item2">Finish writing master’s thesis(in English) and pass the master’s degree oral defense examination</li>
+                        </ul>
+                    </section>
+                </div>
+
+                <!-- Sidebar Column -->
+                <aside class="lg:col-span-1 space-y-8 lg:sticky lg:top-28 h-fit">
+                    <!-- Fees Section -->
+                    <section class="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                        <h3 class="text-xl font-bold text-gray-900" data-lang-key="admission.fees.title">Fees & Living Expenses</h3>
+                        <ul class="mt-4 space-y-3 text-gray-700">
+                            <li class="flex justify-between">
+                                <span data-lang-key="admission.fees.item1">Living Expenses:</span>
+                                <span class="font-medium text-gray-900" data-lang-key="admission.fees.value1">~NT$6,000-10,000 / month</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span data-lang-key="admission.fees.item2">Int'l Student Medical Insurance:</span>
+                                <span class="font-medium text-gray-900" data-lang-key="admission.fees.value2">NT$ 4,956 / semester</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span data-lang-key="admission.fees.item3">Life Insurance:</span>
+                                <span class="font-medium text-gray-900" data-lang-key="admission.fees.value3">NT$325 / semester</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span data-lang-key="admission.fees.item4">Graduate Dorm (Twin):</span>
+                                <span class="font-medium text-gray-900" data-lang-key="admission.fees.value4">~NT$ 11,600 / semester</span>
+                            </li>
+                            <li class="flex justify-between">
+                                <span data-lang-key="admission.fees.item5">Security Deposit:</span>
+                                <span class="font-medium text-gray-900" data-lang-key="admission.fees.value5">NT$ 2,000 (refundable)</span>
+                            </li>
+                        </ul>
+                    </section>
+
+                    <!-- Contact & Apply CTA -->
+                    <section class="bg-blue-600 text-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-bold" data-lang-key="admission.contact.title">Ready to Apply?</h3>
+                        <p class="mt-2 text-blue-100" data-lang-key="admission.contact.email">Email: <a href="mailto:baitia@ncnu.edu.tw" class="font-medium hover:underline">baitia@ncnu.edu.tw</a></p>
+                        <p class="text-blue-100" data-lang-key="admission.contact.phone">Phone: +886-49-2910960 ext. 4601</p>
+                        <p class="text-blue-100" data-lang-key="admission.contact.officeHours">Office Hours: Mon-Fri, 08:00-17:00</p>
+                        <a href="https://exam.ncnu.edu.tw/114FApply.html" target="_blank" rel="noopener noreferrer" class="inline-block mt-6 w-full text-center px-6 py-3 bg-white text-blue-700 font-semibold rounded-lg shadow-md hover:bg-gray-100 transition-colors" data-lang-key="cta.apply">Apply Now</a>
+                    </section>
+                </aside>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 
+      Footer
+      Contact, links, and social media.
+    -->
+    <footer class="bg-gray-900 text-gray-300 mt-16" role="contentinfo">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Column 1: Contact -->
+                <div>
+                    <h4 class="text-lg font-semibold text-white" data-lang-key="footer.contact">Contact BAITIA</h4>
+                    <address class="mt-4 not-italic space-y-2 text-sm">
+                        <p data-lang-key="footer.address">No. 1, Daxue Rd., Puli Township, Nantou County 545, Taiwan (R.O.C.)</p>
+                        <p>
+                            <span data-lang-key="footer.phoneLabel">Phone:</span>
+                            <a href="tel:+886-49-2910960,4601" class="hover:text-white hover:underline">+886-49-2910960 ext. 4601</a>
+                        </p>
+                        <p>
+                            <span data-lang-key="footer.emailLabel">Email:</span>
+                            <a href="mailto:baitia@ncnu.edu.tw" class="hover:text-white hover:underline">baitia@ncnu.edu.tw</a>
+                        </p>
+                    </address>
+                </div>
+
+                <!-- Column 2: Quick Links -->
+                <div>
+                    <h4 class="text-lg font-semibold text-white" data-lang-key="footer.links">Quick Links</h4>
+                    <ul class="mt-4 space-y-2 text-sm">
+                        <li><a href="https://www.ncnu.edu.tw" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline" data-lang-key="project.parent.ncnu">National Chi Nan University</a></li>
+                        <li><a href="https://baitia.ncnu.edu.tw/p/404-1084-24750.php?Lang=en" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline" data-lang-key="project.parent.baitia">BAITIA Department</a></li>
+                        <li><a href="https://exam.ncnu.edu.tw/114FApply.html" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline" data-lang-key="cta.apply">Apply Now</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline" data-page="curriculum" data-lang-key="nav.curriculum">Curriculum</a></li>
+                        <li><a href="#" class="hover:text-white hover:underline" data-page="admission" data-lang-key="nav.admission">Admission</a></li>
+                    </ul>
+                </div>
+
+                <!-- Column 3: Social Media -->
+                <div>
+                    <h4 class="text-lg font-semibold text-white" data-lang-key="footer.social">Follow Us</h4>
+                    <div class="flex gap-5 mt-4">
+                        <a href="https://www.facebook.com/baitiancnu/?rdid=ZQtesH4eDDf9BTsy" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white" data-lang-key-aria-label="footer.social.facebook">
+                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M22.675 0H1.325C.593 0 0 .593 0 1.325v21.351C0 23.407.593 24 1.325 24H12.82v-9.294H9.692v-3.622h3.128V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116c.732 0 1.325-.593 1.325-1.325V1.325C24 .593 23.407 0 22.675 0z" />
+                            </svg>
+                        </a>
+                        <a href="https://www.instagram.com/ncnu_baitia/?igsh=d2F6cWpudmU5M3Jp&utm_source=qr#" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white" data-lang-key-aria-label="footer.social.instagram">
+                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.069-4.85.069s-3.584-.011-4.85-.069c-3.25-.149-4.771-1.664-4.919-4.919-.058-1.265-.069-1.644-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919C8.416 2.175 8.796 2.163 12 2.163zm0 1.626c-3.141 0-3.505.012-4.73.068-2.7.123-3.841 1.255-3.965 3.965-.056 1.225-.068 1.588-.068 4.73s.012 3.505.068 4.73c.124 2.71 1.265 3.841 3.965 3.965 1.225.056 1.589.068 4.73.068 3.141 0 3.505-.012 4.73-.068 2.7-.124 3.841-1.265 3.965-3.965.056-1.225.068-1.589.068-4.73s-.012-3.505-.068-4.73c-.124-2.71-1.265-3.841-3.965-3.965-1.225-.056-1.589-.068-4.73-.068zm0 3.191c-1.701 0-3.078 1.377-3.078 3.078s1.377 3.078 3.078 3.078 3.078-1.377 3.078-3.078-1.377-3.078-3.078-3.078zm0 5.082c-.997 0-1.804-.807-1.804-1.804s.807-1.804 1.804-1.804 1.804.807 1.804 1.804-.807 1.804-1.804 1.804zm4.908-4.218c-.552 0-1 .448-1 1s.448 1 1 1 1-.448 1-1-.448-1-1-1z" />
+                            </svg>
+                        </a>
+                        <a href="https://www.youtube.com/channel/UCfW7jAUBy-yxZCxlsxe5ERg" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white" data-lang-key-aria-label="footer.social.youtube">
+                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="mt-8 pt-6 border-t border-gray-700 text-center text-sm text-gray-400">
+                <p data-lang-key="footer.copyright">&copy; 2025 National Chi Nan University. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    
+    <!-- ============================================= -->
+    <!-- JAVASCRIPT                                -->
+    <!-- ============================================= -->
+    <script>
+        // IIFE (Immediately Invoked Function Expression) to avoid global scope pollution
+        (function() {
+            
+            // --- 1. STATE ---
+            
+            // Default language is English.
+            let currentLang = 'en';
+            // Default page is Home.
+            let currentPage = 'home';
+
+            // --- 2. TRANSLATION DATA ---
+            
+            // All strings for the website.
+            // [TBD - LOCALIZE] tags are used for machine-translated placeholders.
+            const allTranslations = {
+                'en': {
+                    'meta.title': 'Next Horizon: Business Management & IT Innovation',
+                    'meta.description': "A Master's program at NCNU's BAITIA — Learn from experts in five management disciplines shaping the global business landscape.",
+                    'project.title': 'Next Horizon: Business Management & IT Innovation',
+                    'project.parent.ncnu': 'National Chi Nan University (NCNU)',
+                    'project.parent.baitia': 'Dept of Business Administration and Innovation Technology Innovation and Application (BAITIA)',
+                    'header.ncnuLink': 'Go to National Chi Nan University main website',
+                    'trail.notice.label': 'Note:',
+                    'trail.notice.text': 'This is a Trial website for a bonus assignment of Competitive Dynamics and Platform Strategies Course (an elective in BAITIA).',
+                    'trail.notice.dismiss': 'Dismiss this notice',
+                    'nav.home': 'Home',
+                    'nav.curriculum': 'Curriculum Planning',
+                    'nav.curriculum.overview': 'Curriculum Planning Page',
+                    'nav.curriculum.dept1': 'Department of International Studies',
+                    'nav.curriculum.dept2': 'Department of Banking and Finance',
+                    'nav.curriculum.dept3': 'Department of Economics',
+                    'nav.curriculum.dept4': 'Department of Information Management',
+                    'nav.curriculum.dept5': 'Department of Tourism',
+                    'nav.curriculum.dept6': 'Department of Computer Science',
+                    'nav.admission': 'Admission',
+                    'nav.toggleLang': 'Toggle language (Switch to Traditional Chinese)',
+                    'nav.toggleMenu': 'Open main menu',
+                    'hero.title': 'Next Horizon: Business Management & IT Innovation',
+                    'hero.subtitle': "A Master's program at NCNU's BAITIA — Learn from experts in five management disciplines shaping the global business landscape.",
+                    'cta.apply': 'Apply Now',
+                    'cta.curriculum': 'View Curriculum',
+                    'home.panel1.title': 'Program Overview',
+                    'home.panel1.desc': 'Explore the official homepage of the BAITIA department. Learn more about our mission, faculty, and resources.',
+                    'home.panel2.title': 'Curriculum Snapshot',
+                    'home.panel2.desc': 'See the full list of required and elective courses, designed to build interdisciplinary expertise.',
+                    'home.panel3.title': 'Admission Details',
+                    'home.panel3.desc': 'Find application checklists, requirements, fees, and contact information to start your journey.',
+                    'curriculum.title': 'Curriculum Planning',
+                    'curriculum.intro': 'Our curriculum blends core business management principles with cutting-edge information technology, drawing expertise from six departments across the College of Management.',
+                    'curriculum.viewOfficial': 'View Official Curriculum Page',
+                    'curriculum.listTitle': 'Sample Course List',
+                    'curriculum.listSubtitle': 'Courses are subject to change. Please refer to the official page for the final curriculum.',
+                    'course.1': 'Research Methods',
+                    'course.2': 'Topics of Artificial Intelligence and Prospective Information Technology',
+                    'course.3': 'Seminar of Business Administration and Information Technology Innovation',
+                    'course.4': 'Business Management Analytics',
+                    'course.5': 'Advanced Big Data Analytics and Modeling',
+                    'course.6': 'Digital Marketing',
+                    'course.7': 'Co-opetitive Dynamics and Platform Strategy',
+                    'course.8': 'Green Finance',
+                    'course.9': 'Environmental, Social, and Governance (ESG) Principles for Sustainable Businesses',
+                    'course.10': 'Global Industry Competitive Analysis',
+                    'course.11': 'Seminar on Econometrics',
+                    'course.12': 'Econometrics I',
+                    'course.13': 'Empirical Research Methods of Finance',
+                    'course.14': 'Financial Management',
+                    'course.15': 'Python for Finance',
+                    'course.16': 'Strategic Management of Multinational Corporations',
+                    'course.17': 'Modern Organization Management',
+                    'course.18': 'Organization Behavior and Theory',
+                    'course.19': 'Industry Trends and Business Models',
+                    'course.20': 'Management',
+                    'course.21': 'World Economics and Politics',
+                    'course.22': 'Tourism Marketing',
+                    'course.23': 'Design Thinking',
+                    'course.24': 'Programming and Computer System',
+                    'course.25': 'Seminars on Organizational Behavior',
+                    'course.26': 'Industrial Economics',
+                    'course.27': 'Advanced operations research',
+                    'course.28': 'Investment Management',
+                    'course.29': 'Business News and Analysis',
+                    'course.30': 'Industry Trends and Business Models',
+                    'course.31': 'Economic and Finance Empirical Data Analysis',
+                    'course.32': 'Advanced Organization Theory',
+                    'admission.title': 'Admission',
+                    'admission.steps.title': 'Application Checklist',
+                    'admission.steps.subtitle': 'Ensure you have all required documents before applying.',
+                    'admission.steps.item1': 'The application form (including scholarship application)',
+                    'admission.steps.item2': 'Photo copy of a valid passport or certificate of nationality',
+                    'admission.steps.item3': 'One copy of the highest-level diploma',
+                    'admission.steps.item4': 'One copy of the transcript of the highest degree earned',
+                    'admission.steps.item5': 'An autobiography',
+                    'admission.steps.item6': 'Statement of Undertaking',
+                    'admission.steps.item7': 'One study plan',
+                    'admission.steps.item8': 'One copy of a financial statement',
+                    'admission.steps.item9': 'Language proficiency test certificate',
+                    'admission.steps.item10': 'Complete undergraduate transcripts',
+                    'admission.steps.item11': 'Proof of English proficiency (Equivalent to or higher than CEFR B1 level, but not required for applicants from English-speaking countries)',
+                    'admission.steps.item12': 'Any other work that may facilitate the review of the application (e.g. Letters of recommendation)',
+                    'admission.grad.title': 'Graduation Requirements',
+                    'admission.grad.item1': '30 credits (9 credits of required courses + 21 credits of elective courses)',
+                    'admission.grad.item2': 'Finish writing master’s thesis(in English) and pass the master’s degree oral defense examination',
+                    'admission.fees.title': 'Fees & Living Expenses',
+                    'admission.fees.item1': 'Living Expenses:',
+                    'admission.fees.value1': '~NT$6,000-10,000 / month',
+                    'admission.fees.item2': 'Int\'l Student Medical Insurance:',
+                    'admission.fees.value2': 'NT$ 4,956 / semester',
+                    'admission.fees.item3': 'Life Insurance:',
+                    'admission.fees.value3': 'NT$325 / semester',
+                    'admission.fees.item4': 'Graduate Dorm (Twin):',
+                    'admission.fees.value4': '~NT$ 11,600 / semester',
+                    'admission.fees.item5': 'Security Deposit:',
+                    'admission.fees.value5': 'NT$ 2,000 (refundable)',
+                    'admission.contact.title': 'Ready to Apply?',
+                    'admission.contact.email': 'Email: ',
+                    'admission.contact.phone': 'Phone: +886-49-2910960 ext. 4601',
+                    'admission.contact.officeHours': 'Office Hours: Mon-Fri, 08:00-17:00',
+                    'footer.contact': 'Contact BAITIA',
+                    'footer.address': 'No. 1, Daxue Rd., Puli Township, Nantou County 545, Taiwan (R.O.C.)',
+                    'footer.phoneLabel': 'Phone:',
+                    'footer.emailLabel': 'Email:',
+                    'footer.links': 'Quick Links',
+                    'footer.social': 'Follow Us',
+                    'footer.social.facebook': 'Follow us on Facebook',
+                    'footer.social.instagram': 'Follow us on Instagram',
+                    'footer.social.youtube': 'Follow us on YouTube',
+                    'footer.copyright': '© 2025 National Chi Nan University. All Rights Reserved.'
+                },
+                'zh': {
+                    'meta.title': 'Next Horizon：企業管理與資訊科技創新',
+                    'meta.description': '國立暨南國際大學(NCNU)企業管理與資訊科技創新學系(BAITIA)碩士班 — 學習來自五個管理學科的專家，塑造全球商業格局。',
+                    'project.title': 'Next Horizon：企業管理與資訊科技創新',
+                    'project.parent.ncnu': '國立暨南國際大學 (NCNU)',
+                    'project.parent.baitia': '企業管理與資訊科技創新學系 (BAITIA)',
+                    'header.ncnuLink': '前往國立暨南國際大學首頁',
+                    'trail.notice.label': '注意：',
+                    'trail.notice.text': '本網站為「競爭動態與平台策略」（BAITIA選修課）加分作業之試用網站。',
+                    'trail.notice.dismiss': '關閉此通知',
+                    'nav.home': '首頁',
+                    'nav.curriculum': '課程規劃',
+                    'nav.curriculum.overview': '課程規劃主頁',
+                    'nav.curriculum.dept1': '國際企業學系',
+                    'nav.curriculum.dept2': '財務金融學系',
+                    'nav.curriculum.dept3': '經濟學系',
+                    'nav.curriculum.dept4': '資訊管理學系',
+                    'nav.curriculum.dept5': '觀光休閒與餐旅管理學系',
+                    'nav.curriculum.dept6': '資訊工程學系',
+                    'nav.admission': '招生資訊',
+                    'nav.toggleLang': '切換語言 (Switch to English)',
+                    'nav.toggleMenu': '開啟主選單',
+                    'hero.title': 'Next Horizon：企業管理與資訊科技創新',
+                    'hero.subtitle': '國立暨南國際大學(NCNU)企業管理與資訊科技創新學系(BAITIA)碩士班 — 學習來自五個管理學科的專家，塑造全球商業格局。',
+                    'cta.apply': '立即申請',
+                    'cta.curriculum': '查看課程',
+                    'home.panel1.title': '學程總覽',
+                    'home.panel1.desc': '瀏覽 BAITIA 學系官方首頁。了解更多關於我們的使命、師資和資源。',
+                    'home.panel2.title': '課程快照',
+                    'home.panel2.desc': '查看完整的必修和選修課程列表，旨在建立跨學科的專業知識。',
+                    'home.panel3.title': '招生詳情',
+                    'home.panel3.desc': '查找申請清單、要求、費用和聯絡資訊，開始您的旅程。',
+                    'curriculum.title': '課程規劃',
+                    'curriculum.intro': '我們的課程融合了核心企業管理原則與尖端資訊技術，彙集了管理學院六個學系的專業知識。',
+                    'curriculum.viewOfficial': '查看官方課程頁面',
+                    'curriculum.listTitle': '課程範例列表',
+                    'curriculum.listSubtitle': '課程可能有所變動。請以官方頁面為準。',
+                    'course.1': '研究方法',
+                    'course.2': '人工智慧與前瞻資訊科技專題',
+                    'course.3': '企業管理與資訊科技創新研討',
+                    'course.4': '經營管理分析',
+                    'course.5': '高等大數據分析與模型',
+                    'course.6': '數位行銷',
+                    'course.7': '競合動態與平台策略',
+                    'course.8': '綠色金融',
+                    'course.9': 'ESG 企業永續原則',
+                    'course.10': '全球產業競爭分析',
+                    'course.11': '計量經濟學專題',
+                    'course.12': '計量經濟學(一)',
+                    'course.13': '財金實證方法',
+                    'course.14': '財務管理',
+                    'course.15': 'Python 於財務之應用',
+                    'course.16': '跨國公司策略管理',
+                    'course.17': '現代組織管理',
+                    'course.18': '組織行為與理論',
+                    'course.19': '產業趨勢與商業模式',
+                    'course.20': '管理學',
+                    'course.21': '世界經濟與政治',
+                    'course.22': '觀光行銷',
+                    'course.23': '設計思考',
+                    'course.24': '程式設計與電腦系統',
+                    'course.25': '組織行為專題',
+                    'course.26': '產業經濟學',
+                    'course.27': '高等作業研究',
+                    'course.28': '投資管理',
+                    'course.29': '商業新聞與分析',
+                    'course.30': '產業趨勢與商業模式',
+                    'course.31': '經濟與金融實證數據分析',
+                    'course.32': '高等組織理論',
+                    'admission.title': '招生資訊',
+                    'admission.steps.title': '申請文件清單',
+                    'admission.steps.subtitle': '申請前請確保您已準備好所有必要文件。',
+                    'admission.steps.item1': '申請表（含獎學金申請）',
+                    'admission.steps.item2': '有效護照或國籍證明影本',
+                    'admission.steps.item3': '最高學歷文憑影本一份',
+                    'admission.steps.item4': '最高學歷成績單影本一份',
+                    'admission.steps.item5': '自傳',
+                    'admission.steps.item6': '切結書',
+                    'admission.steps.item7': '讀書計畫一份',
+                    'admission.steps.item8': '財力證明影本一份',
+                    'admission.steps.item9': '語言能力測驗證書',
+                    'admission.steps.item10': '大學完整成績單',
+                    'admission.steps.item11': '英語能力證明（相當於或高於CEFR B1級，但英語系國家申請者免繳）',
+                    'admission.steps.item12': '其他有助於審查之著作（例如推薦信）',
+                    'admission.grad.title': '畢業要求',
+                    'admission.grad.item1': '30 學分（9 學分必修 + 21 學分選修）',
+                    'admission.grad.item2': '完成碩士論文（英文撰寫）並通過碩士學位口試',
+                    'admission.fees.title': '費用與生活開支',
+                    'admission.fees.item1': '生活費：',
+                    'admission.fees.value1': '約 NT$6,000-10,000 / 月',
+                    'admission.fees.item2': '國際學生醫療保險：',
+                    'admission.fees.value2': 'NT$ 4,956 / 學期',
+                    'admission.fees.item3': '人壽保險：',
+                    'admission.fees.value3': 'NT$325 / 學期',
+                    'admission.fees.item4': '研究生宿舍（雙人房）：',
+                    'admission.fees.value4': '約 NT$ 11,600 / 學期',
+                    'admission.fees.item5': '保證金：',
+                    'admission.fees.value5': 'NT$ 2,000 (可退還)',
+                    'admission.contact.title': '準備好申請了嗎？',
+                    'admission.contact.email': '電子郵件：',
+                    'admission.contact.phone': '電話：+886-49-2910960 分機 4601',
+                    'admission.contact.officeHours': '辦公時間：週一至週五, 08:00-17:00',
+                    'footer.contact': '聯絡 BAITIA',
+                    'footer.address': '545 台灣南投縣埔里鎮大學路1號',
+                    'footer.phoneLabel': '電話：',
+                    'footer.emailLabel': '電郵：',
+                    'footer.links': '快速連結',
+                    'footer.social': '關注我們',
+                    'footer.social.facebook': '在 Facebook 上關注我們',
+                    'footer.social.instagram': '在 Instagram 上關注我們',
+                    'footer.social.youtube': '在 YouTube 上關注我們',
+                    'footer.copyright': '© 2025 國立暨南國際大學. 版權所有.'
+                }
+            };
+            
+            // --- 3. DOM SELECTORS ---
+            const dom = {
+                html: document.documentElement,
+                title: document.querySelector('title'),
+                description: document.querySelector('meta[name="description"]'),
+                langToggle: document.getElementById('lang-toggle'),
+                langToggleText: document.querySelector('#lang-toggle span'),
+                trialNotice: document.getElementById('trial-notice'),
+                trialNoticeDismiss: document.getElementById('trial-notice-dismiss'),
+                mobileMenuBtn: document.getElementById('mobile-menu-btn'),
+                mobileMenuIconOpen: document.getElementById('mobile-menu-icon-open'),
+                mobileMenuIconClose: document.getElementById('mobile-menu-icon-close'),
+                mobileMenu: document.getElementById('mobile-menu'),
+                navLinks: document.querySelectorAll('.nav-link'),
+                pageSections: document.querySelectorAll('.page-section'),
+                // Selectors for elements that need text updates
+                textElements: document.querySelectorAll('[data-lang-key]'),
+                ariaLabelElements: document.querySelectorAll('[data-lang-key-aria-label]'),
+                // External links in footer that also act as internal nav
+                footerNavLinks: document.querySelectorAll('footer [data-page]')
+            };
+
+            // --- 4. FUNCTIONS ---
+
+            /**
+             * Updates all text content on the page based on the current language.
+             */
+            function updateTextContent() {
+                const langData = allTranslations[currentLang];
+                if (!langData) return;
+
+                // 1. Update HTML lang attribute
+                dom.html.lang = currentLang;
+
+                // 2. Update meta tags
+                dom.title.textContent = langData['meta.title'];
+                dom.description.setAttribute('content', langData['meta.description']);
+
+                // 3. Update language toggle button
+                dom.langToggleText.textContent = currentLang === 'en' ? '繁中' : 'EN';
+                const toggleAriaKey = currentLang === 'en' ? 'nav.toggleLang' : 'nav.toggleLang'; // This key points to different values
+                dom.langToggle.setAttribute('aria-label', langData[toggleAriaKey]);
+
+                // 4. Update all elements with data-lang-key
+                dom.textElements.forEach(el => {
+                    const key = el.dataset.langKey;
+                    if (langData[key]) {
+                        el.textContent = langData[key];
+                    }
+                });
+
+                // 5. Update all elements with data-lang-key-aria-label
+                dom.ariaLabelElements.forEach(el => {
+                    const key = el.dataset.langKeyAriaLabel;
+                    if (langData[key]) {
+                        el.setAttribute('aria-label', langData[key]);
+                    }
+                });
+            }
+
+            /**
+             * Shows the specified page and hides all others.
+             * @param {string} pageId - The ID of the page to show (e.g., 'home').
+             */
+            function showPage(pageId) {
+                if (!pageId) return;
+
+                currentPage = pageId;
+
+                // Hide all page sections
+                dom.pageSections.forEach(section => {
+                    section.classList.add('page-hidden');
+                });
+
+                // Show the target page section
+                const targetPage = document.getElementById(`page-${pageId}`);
+                if (targetPage) {
+                    targetPage.classList.remove('page-hidden');
+                }
+
+                // Update active state for nav links
+                updateActiveNav();
+                
+                // Close mobile menu on navigation
+                closeMobileMenu();
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            }
+
+            /**
+             * Updates the "active" style on navigation links.
+             */
+            function updateActiveNav() {
+                dom.navLinks.forEach(link => {
+                    if (link.dataset.page === currentPage) {
+                        link.classList.add('nav-link-active');
+                        link.setAttribute('aria-current', 'page');
+                    } else {
+                        link.classList.remove('nav-link-active');
+                        link.removeAttribute('aria-current');
+                    }
+                });
+            }
+
+            /**
+             * Toggles the language between 'en' and 'zh'.
+             */
+            function toggleLanguage() {
+                currentLang = currentLang === 'en' ? 'zh' : 'en';
+                // Save preference to local storage
+                try {
+                    localStorage.setItem('preferredLang', currentLang);
+                } catch (e) {
+                    console.warn('Could not save language preference to localStorage.');
+                }
+                updateTextContent();
+            }
+
+            /**
+             * Toggles the mobile menu open/closed.
+             */
+            function toggleMobileMenu() {
+                const isHidden = dom.mobileMenu.classList.contains('hidden');
+                if (isHidden) {
+                    dom.mobileMenu.classList.remove('hidden');
+                    dom.mobileMenuIconOpen.classList.add('hidden');
+                    dom.mobileMenuIconClose.classList.remove('hidden');
+                    dom.mobileMenuBtn.setAttribute('aria-expanded', 'true');
+                } else {
+                    closeMobileMenu();
+                }
+            }
+
+            /**
+             * Closes the mobile menu.
+             */
+            function closeMobileMenu() {
+                dom.mobileMenu.classList.add('hidden');
+                dom.mobileMenuIconOpen.classList.remove('hidden');
+                dom.mobileMenuIconClose.classList.add('hidden');
+                dom.mobileMenuBtn.setAttribute('aria-expanded', 'false');
+            }
+
+            /**
+             * Initializes the application.
+             */
+            function init() {
+                // Check for saved language preference
+                try {
+                    const savedLang = localStorage.getItem('preferredLang');
+                    if (savedLang && (savedLang === 'en' || savedLang === 'zh')) {
+                        currentLang = savedLang;
+                    }
+                } catch (e) {
+                    console.warn('Could not read language preference from localStorage.');
+                }
+
+                // --- Add Event Listeners ---
+                
+                // Language toggle
+                dom.langToggle.addEventListener('click', toggleLanguage);
+
+                // Dismiss trial notice
+                dom.trialNoticeDismiss.addEventListener('click', () => {
+                    dom.trialNotice.classList.add('page-hidden');
+                });
+
+                // Mobile menu button
+                dom.mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+
+                // All navigation links (desktop, mobile, and footer)
+                const allNavTriggers = document.querySelectorAll('[data-page]');
+                allNavTriggers.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const pageId = link.dataset.page;
+                        showPage(pageId);
+                    });
+                });
+
+                // --- Initial Load ---
+                
+                // Set the initial page and language
+                showPage(currentPage);
+                updateTextContent();
+            }
+
+            // --- 5. RUN INITIALIZATION ---
+            
+            // Wait for the DOM to be fully loaded before running the script
+            document.addEventListener('DOMContentLoaded', init);
+
+        })();
+    </script>
+
+</body>
+</html>
